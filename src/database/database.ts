@@ -9,7 +9,7 @@ export async function connectToDatabase() {
   }
 
   try {
-    await mongoose.connect(process.env.MONGODB_URL!);
+    await mongoose.connect(process.env.NEXT_PUBLIC_MONGODB_URL!);
 
     mongoose.connection.on('connected', () => {
       isConnected = true;
