@@ -20,13 +20,18 @@ export default function SignUpPage() {
         try {
             
             setLoading(true);
-            const response = await axios.post('/api/users/signup', user);
+            await axios.post('/api/users/signup', user);
 
             router.push('/login');
 
-        } catch (error: any) {
-            toast.error(error.message)
-            console.log('Sign up failed', error.message)
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                toast.error(error.message);
+                console.log('Sign up failed:', error.message);
+            } else {
+                toast.error('An unknown error occurred');
+                console.log('Sign up failed: An unknown error occurred');
+            }
         } finally {
             setLoading(false);
         }
