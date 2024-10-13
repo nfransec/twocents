@@ -46,11 +46,13 @@ const cardFormSchema = z.object({
     }),
   })
 
+type Card = z.infer<typeof cardFormSchema>;
+
 export default function ProfilePage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
-  const [cards, setCards] = useState([])
+  const [cards, setCards] = useState<Card[]>([])
   const [isAddingCard, setIsAddingCard] = useState(false)
 
   const userForm = useForm<z.infer<typeof userFormSchema>>({
