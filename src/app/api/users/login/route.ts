@@ -3,50 +3,58 @@ import User from "@/models/userModel";
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 
-connectToDatabase()
+const loginSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(8),
+});
 
 export async function POST(request: NextRequest) {
     try {
-        const reqBody = await request.json()
-        const {email, password} = reqBody;
+        await connectToDatabase();
 
-        //check if user exists
-        const user = await User.findOne({email})
+        const reqBody = await request.json();
+        const validatedData = loginSchema.parse(reqBody);
+        const {email, password} = validatedData;
+
+        const user = await User.findOne({ email });
         if(!user) {
-            return NextResponse.json({error: "User does not exist"}, {status: 400})
+            return NextResponse.json({error: "Invalid credentials"}, {status: 400});
         }
         
-        // check if password is correct
         const validPassword = await bcryptjs.compare(password, user.password)
         if(!validPassword) {
-            return NextResponse.json({error: "Invalid Password"}, {status: 400})
+            return NextResponse.json({error: "Invalid credentials"}, {status: 400})
         }
 
-        //create token data
         const tokenData = {
             id: user._id,
             username: user.username,
             email: user.email
         }
 
-        // create token
-        const token = await jwt.sign(tokenData, process.env.NEXT_PUBLIC_TOKEN_SECRET!, {expiresIn: "1h"})
+       
+        const token = jwt.sign(tokenData, process.env.NEXT_PUBLIC_TOKEN_SECRET!, {expiresIn: "1h"});
 
         const response = NextResponse.json({
             message: 'Login successful',
             success: true,
-        })
+        });
         response.cookies.set("token", token, {
             httpOnly: true, 
-        })
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 3600, // 1 hour
+        });
         return response;
         
-    } catch (error: unknown) {
+    } catch (error) {
         
-        if (error instanceof Error) {
+        if (error instanceof z.ZodError) {
             return NextResponse.json({ error: error.message }, { status: 500 });
         } else {
+            console.error(error);
             return NextResponse.json({ error: "An unknown error occurred" }, { status: 500 });
         }
         

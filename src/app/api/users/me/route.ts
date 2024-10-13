@@ -1,21 +1,33 @@
-import { getDataFromToken } from "@/helpers/getDataFromToken";
 import { NextRequest, NextResponse } from "next/server";
-import User from '@/models/userModel';
 import { connectToDatabase } from "@/database/database";
-
-connectToDatabase();
+import User from "@/models/userModel";
+import jwt from 'jsonwebtoken';
 
 export async function GET(request: NextRequest) {
     try {
-        const userId = await getDataFromToken(request);
-        const user = await User.findOne({_id: userId}).select("-password");
-        return NextResponse.json({message: "User found", data: user})
+        await connectToDatabase();
 
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            return NextResponse.json({ error: error.message }, { status: 500 });
-        } else {
-            return NextResponse.json({ error: "An unknown error occurred" }, { status: 500 });
+        const token = request.cookies.get("token")?.value;
+        if(!token) {
+            return NextResponse.json({ error: 'No token found' }, { status: 401 });
         }
+
+        const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as { id: string };
+        const userId = decodedToken.id;
+
+        const user = await User.findById(userId).select("-password");
+        if(!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
+        return NextResponse.json({
+            message: 'User found',
+            data: user,
+            success: true,
+        });
+        
+    } catch (error) {
+        console.error(error);
+        return NextResponse.json({ error: "An error occurred while fetching user data"}, { status: 500});
     }
 }
