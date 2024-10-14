@@ -26,6 +26,10 @@ const cardSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  imageUrl: {
+    type: String,
+    default: '',
+  },
 }, { timestamps: true });
 
 const Card = mongoose.models.cards || mongoose.model('cards', cardSchema);
