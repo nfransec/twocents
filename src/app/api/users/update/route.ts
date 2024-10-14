@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/database/database";
 import User from "@/models/userModel";
-import jwt, { Jwt } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { z } from 'zod';
 
 const updateSchema = z.object({
