@@ -8,6 +8,7 @@ const signupSchema = z.object({
   username: z.string().min(3),
   email: z.string().email(),
   password: z.string().min(8),
+  fullName: z.string().min(2),
 });
 
 export async function POST(request: NextRequest) {
@@ -16,9 +17,9 @@ export async function POST(request: NextRequest) {
 
     const reqBody = await request.json();
     const validatedData = signupSchema.parse(reqBody);
-    const { username, email, password } = validatedData;
+    const { username, email, password, fullName } = validatedData;
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 });
     }
@@ -29,7 +30,8 @@ export async function POST(request: NextRequest) {
     const newUser = new User({
       username,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      fullName
     });
 
     const savedUser = await newUser.save();
@@ -40,7 +42,8 @@ export async function POST(request: NextRequest) {
       user: {
         id: savedUser._id,
         username: savedUser.username,
-        email: savedUser.email
+        email: savedUser.email,
+        fullName: savedUser.fullName
       }
     });
 

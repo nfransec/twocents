@@ -61,7 +61,8 @@ export function SignUpForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true)
     try {
-      await axios.post('/api/users/signup', values)
+      const { confirmPassword, ...signupData } = values;
+      await axios.post('/api/users/signup', signupData)
       toast.success("Sign up successful")
       router.push('/login')
     } catch (error) {
