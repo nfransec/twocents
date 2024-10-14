@@ -9,10 +9,12 @@ const cardSchema = new mongoose.Schema({
   cardName: {
     type: String,
     required: [true, 'Please provide a card name'],
+    enum: ["Platinum Travel", 'SimplyCLICK', 'Ixigo', 'BookMyShow PLaY', 'Amazon Pay', 'Gold Charge', 'Infinia', 'MRCC', 'Tata Neu', 'Power +', 'Scapia'],
   },
   bankName: {
     type: String,
     required: [true, 'Please provide a bank name'],
+    enum: ['Amex', 'SBI', 'AU', 'RBL', 'ICICI', 'HDFC', 'IDFC', 'Federal'],
   },
   cardLimit: {
     type: Number,
@@ -28,7 +30,7 @@ const cardSchema = new mongoose.Schema({
   },
   imageUrl: {
     type: String,
-    default: '',
+    required: true,
   },
 }, { timestamps: true });
 

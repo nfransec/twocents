@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import axios from "axios"
 import { toast } from "sonner"
@@ -17,42 +17,56 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Pencil } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
+interface CardType {
+    _id: string;
+    cardName: string;
+    bankName: string;
+    cardLimit: number;
+    billingDate: string;
+    outstandingAmount: number;
+    imageUrl: string;
+  }
+
 
 const userFormSchema = z.object({
-  fullName: z.string().min(2, {
-    message: "Full name must be at least 2 characters.",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email.",
-  }),
+    fullName: z.string().min(2, {
+      message: "Full name must be at least 2 characters.",
+    }),
+    email: z.string().email({
+      message: "Please enter a valid email.",
+    }),
 })
 
 const cardFormSchema = z.object({
-  cardName: z.string().min(2, {
-    message: "Card name must be at least 2 characters.",
-  }),
-  bankName: z.string().min(2, {
-    message: "Bank name must be at least 2 characters.",
-  }),
-  cardLimit: z.coerce.number().min(0, {
-    message: "Card limit must be a positive number.",
-  }),
-  billingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
-    message: "Please enter a valid date in YYYY-MM-DD format.",
-  }),
-  outstandingAmount: z.coerce.number().min(0, {
-    message: "Outstanding amount must be a positive number.",
-  }),
-  imageUrl: z.string().optional(),
+    cardName: z.string().min(2, {
+      message: "Please select a card name.",
+    }),
+    bankName: z.string().min(2, {
+      message: "Please select a bank name.",
+    }),
+    cardLimit: z.coerce.number().min(0, {
+      message: "Card limit must be a positive number.",
+    }),
+    billingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
+      message: "Please enter a valid date in YYYY-MM-DD format.",
+    }),
+    outstandingAmount: z.coerce.number().min(0, {
+      message: "Outstanding amount must be a positive number.",
+    }),
 })
 
 export default function ProfilePage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
-  const [cards, setCards] = useState([])
+  const [cards, setCards] = useState<CardType[]>([])
   const [isAddingCard, setIsAddingCard] = useState(false)
-  const [editingCard, setEditingCard] = useState(null)
+  const [editingCard, setEditingCard] = useState<CardType | null>(null)
+
+  const cardNames = ["PlatinumTravel", 'SimplyCLICK', 'Ixigo', 'Play', 'AmazonPay', 'GoldCharge', 'Infinia', 'MRCC', 'TataNeu', 'Power+', 'Scapia']
+  const bankNames = ['Amex', 'SBI', 'AU', 'RBL', 'ICICI', 'HDFC', 'IDFC', 'Federal']
 
   const userForm = useForm<z.infer<typeof userFormSchema>>({
     resolver: zodResolver(userFormSchema),
@@ -74,12 +88,7 @@ export default function ProfilePage() {
     },
   })
 
-  useEffect(() => {
-    getUserDetails()
-    getCards()
-  }, [])
-
-  const getUserDetails = async () => {
+  const getUserDetails = useCallback(async () => {
     setIsLoading(true)
     try {
       const res = await axios.get('/api/users/me')
@@ -92,16 +101,25 @@ export default function ProfilePage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [userForm])
 
-  const getCards = async () => {
+  const getCards = useCallback(async () => {
     try {
       const res = await axios.get('/api/cards')
       setCards(res.data.data)
     } catch (error) {
       handleError(error)
     }
+  }, [])
+
+  const getImageUrl = (cardName: string, bankName: string) => {
+    return `/${cardName.toLowerCase()}-${bankName.toLowerCase()}.png`
   }
+
+  useEffect(() => {
+    getUserDetails()
+    getCards()
+  }, [getUserDetails, getCards])
 
   const onSubmitUserForm = async (values: z.infer<typeof userFormSchema>) => {
     setIsLoading(true)
@@ -123,6 +141,7 @@ export default function ProfilePage() {
         ...values,
         cardLimit: Number(values.cardLimit),
         outstandingAmount: Number(values.outstandingAmount),
+        imageUrl: getImageUrl(values.cardName, values.bankName),
       };
       if (editingCard) {
         await axios.put('/api/cards', { id: editingCard._id, ...formattedValues })
@@ -139,31 +158,6 @@ export default function ProfilePage() {
       handleError(error)
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>, cardId: string) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setIsLoading(true)
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('upload_preset', 'ml_default')
-
-      try {
-        const response = await axios.post(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-          formData
-        )
-        const imageUrl = response.data.secure_url
-        await axios.put('/api/cards', { id: cardId, imageUrl })
-        toast.success("Card image uploaded successfully")
-        getCards()
-      } catch (error) {
-        handleError(error)
-      } finally {
-        setIsLoading(false)
-      }
     }
   }
 
@@ -265,13 +259,13 @@ export default function ProfilePage() {
                     <CardContent>
                       <div className="flex items-center space-x-4">
                         <div className="flex-shrink-0">
-                          {card.imageUrl ? (
-                            <Image src={card.imageUrl} alt={card.cardName} width={100} height={60} className="rounded-md" />
-                          ) : (
-                            <div className="w-[100px] h-[60px] bg-gray-200 rounded-md flex items-center justify-center">
-                              No Image
-                            </div>
-                          )}
+                          <Image 
+                            src={getImageUrl(card.cardName, card.bankName)}
+                            alt={`${card.cardName} ${card.bankName}`}
+                            width={100} 
+                            height={60} 
+                            className="rounded-md" 
+                        />
                         </div>
                         <div className="flex-grow">
                           <p>Card Limit: ${card.cardLimit}</p>
@@ -279,17 +273,10 @@ export default function ProfilePage() {
                           <p>Outstanding Amount: ${card.outstandingAmount}</p>
                         </div>
                       </div>
-                      <Input
-                        type="file"
-                        onChange={(e) => handleImageUpload(e, card._id)}
-                        className="mt-2"
-                        accept="image/*"
-                      />
                     </CardContent>
                   </Card>
                 ))}
                 <Dialog open={isAddingCard || editingCard !== null} onOpenChange={(open) => {
-                
                   if (!open) {
                     setIsAddingCard(false)
                     setEditingCard(null)
@@ -312,9 +299,18 @@ export default function ProfilePage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Card Name</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select a card name" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {cardNames.map((name) => (
+                                    <SelectItem key={name} value={name}>{name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -325,9 +321,18 @@ export default function ProfilePage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Bank Name</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select a bank name" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {bankNames.map((name) => (
+                                    <SelectItem key={name} value={name}>{name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}

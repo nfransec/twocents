@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/database/database";
 import User from "@/models/userModel";
-import jwt from "jsonwebtoken";
+import jwt, { Jwt } from "jsonwebtoken";
 import { z } from 'zod';
 
 const updateSchema = z.object({
@@ -9,14 +9,18 @@ const updateSchema = z.object({
   email: z.string().email().optional(),
 });
 
+interface JwtPayload {
+    id: string;
+}
+
 export async function PUT(request: NextRequest) {
   try {
     await connectToDatabase();
 
     const token = request.cookies.get("token")?.value || "";
-    const decodedToken: any = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!);
+    const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as JwtPayload;
     const userId = decodedToken.id;
-    
+
     const reqBody = await request.json();
     const validatedData = updateSchema.parse(reqBody);
 

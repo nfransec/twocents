@@ -13,20 +13,27 @@ const cardSchema = z.object({
   imageUrl: z.string().optional(),
 });
 
+interface JwtPayload {
+  id: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
     await connectToDatabase();
 
     const token = request.cookies.get("token")?.value || "";
-    const decodedToken: any = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!);
+    const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as JwtPayload;
     const userId = decodedToken.id;
 
     const reqBody = await request.json();
     const validatedData = cardSchema.parse(reqBody);
 
+    const imageUrl = `/${validatedData.cardName.toLowerCase()}-${validatedData.bankName.toLowerCase()}.png`;
+    console.log(imageUrl);
     const newCard = new Card({
       userId,
       ...validatedData,
+      imageUrl,
     });
 
     await newCard.save();
@@ -50,7 +57,7 @@ export async function GET(request: NextRequest) {
     await connectToDatabase();
 
     const token = request.cookies.get("token")?.value || "";
-    const decodedToken: any = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!);
+    const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as JwtPayload;
     const userId = decodedToken.id;
 
     const cards = await Card.find({ userId });
@@ -71,7 +78,7 @@ export async function PUT(request: NextRequest) {
     await connectToDatabase();
 
     const token = request.cookies.get("token")?.value || "";
-    const decodedToken: any = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!);
+    const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as JwtPayload;
     const userId = decodedToken.id;
 
     const { id, ...updateData } = await request.json();
