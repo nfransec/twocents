@@ -61,7 +61,7 @@ export function SignUpForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true)
     try {
-      const { confirmPassword: _confirmPassword, ...signupData } = values;
+      const { confirmPassword, ...signupData } = values; // eslint-disable-next-line @typescript-eslint/no-unused-vars
       await axios.post('/api/users/signup', signupData)
       toast.success("Sign up successful")
       router.push('/login')
