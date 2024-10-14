@@ -84,7 +84,7 @@ export default function ProfilePage() {
       cardLimit: 0,
       billingDate: "",
       outstandingAmount: 0,
-      imageUrl: "",
+      //imageUrl: "",
     },
   })
 
