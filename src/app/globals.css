@@ -76,3 +76,46 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif; /* You can replace this with your font */
+  background-color: #f7fafc; /* Light background color */
+}
+
+/* Add some utility classes for your styles */
+.bg-gradient-to-r {
+  background: linear-gradient(to right, #3b82f6, #9333ea); /* Adjust gradient colors */
+}
+
+.text-gray-600 {
+  color: rgba(75, 85, 99, 1); /* Gray color for text */
+}
+
+.text-gray-800 {
+  color: rgba(31, 41, 55, 1); /* Darker gray for headings */
+}
+
+.bg-white {
+  background-color: white; /* White background for card */
+}
+
+.rounded-lg {
+  border-radius: 0.5rem; /* Rounded corners */
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Shadow effect */
+}
+
+.p-8 {
+  padding: 2rem; /* Padding around the card */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  .text-2xl {
+      font-size: 1.5rem; /* Smaller font size for mobile */
+  }
+}
+

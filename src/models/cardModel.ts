@@ -9,7 +9,7 @@ const cardSchema = new mongoose.Schema({
   cardName: {
     type: String,
     required: [true, 'Please provide a card name'],
-    enum: ["Platinum Travel", 'SimplyCLICK', 'Ixigo', 'BookMyShow PLaY', 'Amazon Pay', 'Gold Charge', 'Infinia', 'MRCC', 'Tata Neu', 'Power +', 'Scapia'],
+    enum: ["PlatinumTravel", 'SimplyCLICK', 'Ixigo', 'Play', 'AmazonPay', 'GoldCharge', 'Infinia', 'MRCC', 'TataNeu', 'PowerPlus', 'Scapia'],
   },
   bankName: {
     type: String,
