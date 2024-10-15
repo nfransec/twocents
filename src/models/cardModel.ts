@@ -9,7 +9,7 @@ const cardSchema = new mongoose.Schema({
   cardName: {
     type: String,
     required: [true, 'Please provide a card name'],
-    enum: ['platinumtravel', 'mrcc', 'goldcharge', 'simplyclick', 'prime', 'elite', 'bpcloctane', 'cashback', 'clubvistaraprime', 'yatra', 'simplysave', 'irctcplatinum', 'altura', 'alturaplus', 'ixigo', 'lit', 'vetta', 'zenith', 'zenithplus', 'indianoilextra', 'irctc', 'icon', 'paisabazarduet', 'play', 'worldsafari', 'shoprite', 'adanione', 'amazonpay', 'emiratesskywards', 'hpclcoral', 'hpcl', 'sapphiro', 'coral', 'emeralde', 'hpclsupersaver', 'tataneu', '6erewards', '6erewardsxl', 'allmiles', 'easyemi', 'pixelplay', 'platinumedge', 'times', 'millenia', 'regalia', 'regaliafirst', 'infinia', 'dinersclub', 'clubvistara', 'ashva', 'mayura', 'millenia', 'onecard', 'powerplus'],
+    enum: ["PlatinumTravel", 'SimplyCLICK', 'Ixigo', 'Play', 'AmazonPay', 'GoldCharge', 'Infinia', 'MRCC', 'TataNeu', 'PowerPlus', 'Scapia'],
   },
   bankName: {
     type: String,
