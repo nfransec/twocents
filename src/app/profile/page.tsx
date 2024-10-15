@@ -65,7 +65,7 @@ export default function ProfilePage() {
   const [isAddingCard, setIsAddingCard] = useState(false)
   const [editingCard, setEditingCard] = useState<CardType | null>(null)
 
-  const cardNames = ["PlatinumTravel", 'SimplyCLICK', 'Ixigo', 'Play', 'AmazonPay', 'GoldCharge', 'Infinia', 'MRCC', 'TataNeu', 'PowerPlus', 'Scapia']
+  const cardNames = ["PlatinumTravel", 'SimplyCLICK', 'Ixigo', 'Play', 'AmazonPay', 'GoldCharge', 'Infinia', 'MRCC', 'TataNeu', 'PowerPlus',]
   const bankNames = ['Amex', 'SBI', 'AU', 'RBL', 'ICICI', 'HDFC', 'IDFC', 'Federal']
 
   const userForm = useForm<z.infer<typeof userFormSchema>>({
