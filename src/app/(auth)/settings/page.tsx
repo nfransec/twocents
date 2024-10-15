@@ -67,7 +67,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Profile Information</CardTitle>
-            <CardDescription>Update your account's profile information and email address.</CardDescription>
+            <CardDescription>Update your account&#39;s profile information and email address.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleUpdateProfile} className="space-y-4">

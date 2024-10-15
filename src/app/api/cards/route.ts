@@ -5,8 +5,8 @@ import jwt, { Jwt } from "jsonwebtoken";
 import { z } from 'zod';
 
 const cardSchema = z.object({
-  cardName: z.string().min(2),
-  bankName: z.string().min(2),
+  cardName: z.enum(['platinumtravel', 'mrcc', 'goldcharge', 'simplyclick', 'prime', 'elite', 'bpcloctane', 'cashback', 'clubvistaraprime', 'yatra', 'simplysave', 'irctcplatinum', 'altura', 'alturaplus', 'ixigo', 'lit', 'vetta', 'zenith', 'zenithplus', 'indianoilextra', 'irctc', 'icon', 'paisabazarduet', 'play', 'worldsafari', 'shoprite', 'adanione', 'amazonpay', 'emiratesskywards', 'hpclcoral', 'hpcl', 'sapphiro', 'coral', 'emeralde', 'hpclsupersaver', 'tataneu', '6erewards', '6erewardsxl', 'allmiles', 'easyemi', 'pixelplay', 'platinumedge', 'times', 'millenia', 'regalia', 'regaliafirst', 'infinia', 'dinersclub', 'clubvistara', 'ashva', 'mayura', 'millenia', 'onecard', 'powerplus']),
+  bankName: z.enum(['amex', 'sbi', 'au', 'rbl', 'icici', 'hdfc', 'idfc']),
   cardLimit: z.number().min(0),
   billingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   outstandingAmount: z.number().min(0),
@@ -26,15 +26,17 @@ export async function POST(request: NextRequest) {
     const userId = decodedToken.id;
 
     const reqBody = await request.json();
-
     const validatedData = cardSchema.parse(reqBody);
 
-    const imageUrl = `/${validatedData.cardName.toLowerCase()}-${validatedData.bankName.toLowerCase()}.png`;
+    const normalizedData = {
+      ...validatedData,
+      cardName: validatedData.cardName.toLowerCase(),
+      bankName: validatedData.bankName.toLowerCase(),
+    };
     
     const newCard = new Card({
       userId,
-      ...validatedData,
-      imageUrl,
+      ...normalizedData,
     });
 
     await newCard.save();
@@ -46,7 +48,8 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
+      const errorMessage = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`).join(', ')
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
     console.error(error);
     return NextResponse.json({ error: "An error occurred while adding the card" }, { status: 500 });
@@ -114,12 +117,20 @@ export async function PUT(request: NextRequest) {
     const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as JwtPayload;
     const userId = decodedToken.id;
 
-    const { id, ...updateData } = await request.json();
-    const validatedData = cardSchema.parse(updateData);
+    const updateData = await request.json();
+    const { _id, ...cardData } = updateData;
+
+    const validatedData = cardSchema.parse(cardData);
+
+    const normalizedData = {
+      ...validatedData,
+      cardName: validatedData.cardName.toLowerCase(),
+      bankName: validatedData.bankName.toLowerCase(),
+    };
 
     const updatedCard = await Card.findOneAndUpdate(
-      { _id: id, userId },
-      validatedData,
+      { _id, userId },
+      normalizedData,
       { new: true }
     );
 
@@ -134,7 +145,8 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
+      const errorMessage = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`).join(', ')
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
     console.error(error);
     return NextResponse.json({ error: "An error occurred while updating the card" }, { status: 500 });
