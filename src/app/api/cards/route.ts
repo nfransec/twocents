@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/database/database";
 import Card from "@/models/cardModel";
-import jwt, { Jwt } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { z } from 'zod';
 
 const cardSchema = z.object({
@@ -28,12 +28,8 @@ export async function POST(request: NextRequest) {
     const reqBody = await request.json();
     const validatedData = cardSchema.parse(reqBody);
 
-    const normalizedData = {
-      ...validatedData,
-      cardName: validatedData.cardName.toLowerCase(),
-      bankName: validatedData.bankName.toLowerCase(),
-    };
-    
+    const imageUrl = `/${validatedData.cardName.toLowerCase()}-${validatedData.bankName.toLowerCase()}.png`;
+    console.log(imageUrl);
     const newCard = new Card({
       userId,
       ...normalizedData,
@@ -74,38 +70,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "An error occurred while retrieving cards" }, { status: 500 });
-  }
-}
-
-export async function DELETE(request: NextRequest) {
-  try {
-    await connectToDatabase();
-
-    const token = request.cookies.get("token")?.value || "";
-    const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as JwtPayload;
-    const userId = decodedToken.id;
-
-    const { searchParams } = new URL(request.url);
-    const cardId = searchParams.get('id');
-
-    if (!cardId) {
-      return NextResponse.json({ error: "Card ID is required" }, { status: 400 });
-    }
-
-    const deletedCard = await Card.findOneAndDelete({ _id: cardId, userId });
-
-    if (!deletedCard) {
-      return NextResponse.json({ error: "Card not found or you don't have permission to delete it" }, { status: 404 });
-    }
-
-    return NextResponse.json({
-      message: "Card deleted successfully",
-      success: true,
-      data: deletedCard,
-    });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "An error occurred while deleting the card" }, { status: 500 });
   }
 }
 
