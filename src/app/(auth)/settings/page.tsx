@@ -23,6 +23,7 @@ export default function SettingsPage() {
       toast.error("Failed to fetch user data")
     } finally {
       setIsLoading(false)
+      // code
     }
   }
 
