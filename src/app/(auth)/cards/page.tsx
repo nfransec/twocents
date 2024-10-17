@@ -13,6 +13,7 @@ import { Icons } from "@/components/ui/icons"
 import { Pencil, Trash2, PlusCircle } from "lucide-react"
 import Image from "next/image"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import React from 'react';
 
 
 const bankCardMap = {
@@ -56,7 +57,7 @@ export default function CardsPage() {
     }
   }
 
-  const handleEditCard = async (e) => {
+  const handleEditCard = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     try {
       const updatedCard = {
