@@ -241,7 +241,7 @@ export default function CardsPage() {
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Edit Card</DialogTitle>
-                      <DialogDescription>Make changes to your card here. Click save when you're done.</DialogDescription>
+                      <DialogDescription>Make changes to your card here. Click save when you&#39;re done.</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleEditCard}>
                       <div className="grid gap-4 py-4">
