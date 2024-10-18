@@ -191,7 +191,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container flex items-center justify-center min-h-screen">
+    <div className="container flex items-center justify-center min-h-screen text-white">
       <Card className="w-[800px]">
         <CardHeader>
           <CardTitle>Profile</CardTitle>
@@ -399,7 +399,7 @@ export default function ProfilePage() {
               Cancel
             </Button>
           )}
-          <Button onClick={logout} disabled={isLoading}>
+          <Button onClick={logout} disabled={isLoading} className="bg-green-500">
             {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
             Logout
           </Button>

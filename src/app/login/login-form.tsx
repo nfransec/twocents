@@ -20,6 +20,10 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Icons } from "@/components/ui/icons"
+import Link from "next/link"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import CustomFormField from "@/components/CustomFormField"
+import { FormFieldType } from "@/components/forms/UserForm"
 
 const formSchema = z.object({
   email: z.string().email({
@@ -61,60 +65,42 @@ export function LoginForm() {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your email" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    {...field}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading && (
-            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          Sign In
-        </Button>
-      </form>
-    </Form>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 space-y-6">
+            <section className="mb-12 space-y-4">
+              <h1 className="header text-white text-center">Welcome back 🙏</h1>
+              <p className="text-dark-700 text-center">Enter your email and secret to login.</p>
+            </section>
+            
+            <CustomFormField
+              fieldType={FormFieldType.INPUT}
+              control={form.control}
+              name="email"
+              label="Email"
+              placeholder="johndoe@gmail.com"
+              iconSrc="/assets/icons/email2.svg"
+              iconAlt="email"
+            />
+
+            <CustomFormField
+              fieldType={FormFieldType.PASSWORD_INPUT}
+              control={form.control}
+              name="password"
+              label="Password"
+              placeholder="Enter your password"
+              iconSrc="/assets/icons/lock.svg"
+              iconAlt="password"
+              showPassword={showPassword}
+              setShowPassword={setShowPassword}
+            />
+            
+            <Button type="submit" className="w-full bg-green-500 text-white" disabled={isLoading}>
+              {isLoading && (
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Sign In
+            </Button>
+          </form>
+        </Form>
   )
 }

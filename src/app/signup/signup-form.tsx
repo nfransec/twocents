@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Icons } from "@/components/ui/icons"
+import { FormFieldType } from "@/components/forms/UserForm"
+import CustomFormField from "@/components/CustomFormField"
 
 const formSchema = z.object({
   username: z.string().min(3, {
@@ -79,119 +81,67 @@ export function SignUpForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
+        <section className="mb-12 space-y-4">
+          <h1 className="header text-white text-center">Create an account 🎉</h1>
+          <p className="text-dark-700 text-center">Enter your details below to create your account</p>
+        </section>
+
+        <CustomFormField
+          fieldType={FormFieldType.INPUT}
           control={form.control}
           name="fullName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl>
-                <Input placeholder="John Doe" {...field} />
-              </FormControl>
-              <FormDescription>
-                This is your public display name.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Full Name"
+          placeholder="John Doe"
+          iconSrc="/assets/icons/user2.svg"
+          iconAlt="user"
         />
-        <FormField
+
+        <CustomFormField
+          fieldType={FormFieldType.INPUT}
           control={form.control}
           name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input placeholder="johndoe" {...field} />
-              </FormControl>
-              <FormDescription>
-                This is your unique username on the platform.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Username"
+          placeholder="johndoe"
+          iconSrc="/assets/icons/username.svg"
+          iconAlt="user"
+          description="This is your unique username on the platform."
         />
-        <FormField
+
+        <CustomFormField
+          fieldType={FormFieldType.INPUT}
           control={form.control}
           name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="john@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Email"
+          placeholder="johndoe@gmail.com"
+          iconSrc="/assets/icons/email2.svg"
+          iconAlt="email"
         />
-        <FormField
+
+        <CustomFormField
+          fieldType={FormFieldType.PASSWORD_INPUT}
           control={form.control}
           name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    {...field}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </FormControl>
-              <FormDescription>
-                Password must be at least 8 characters long.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Password"
+          placeholder="Enter your password"
+          iconSrc="/assets/icons/lock.svg"
+          iconAlt="password"
+          showPassword={showPassword}
+          setShowPassword={setShowPassword}
         />
-        <FormField
+
+        <CustomFormField
+          fieldType={FormFieldType.PASSWORD_INPUT}
           control={form.control}
           name="confirmPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm your password"
-                    {...field}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Confirm Password"
+          placeholder="Confirm your password"
+          iconSrc="/assets/icons/lock.svg"
+          iconAlt="password"
+          showPassword={showConfirmPassword}
+          setShowPassword={setShowConfirmPassword}
         />
-        <Button type="submit" className="w-full" disabled={isLoading}>
+          
+        <Button type="submit" className="w-full bg-green-500" disabled={isLoading}>
           {isLoading && (
             <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
           )}
