@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     console.log(imageUrl);
     const newCard = new Card({
       userId,
-      ...normalizedData,
+      ...validatedData,
     });
 
     await newCard.save();
