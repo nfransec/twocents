@@ -30,7 +30,7 @@ export default function RootLayout({
           defaultTheme='dark'
         >
           {children}
-          <Toaster />
+          <Toaster richColors />
         </ThemeProvider>
       </body>
     </html>

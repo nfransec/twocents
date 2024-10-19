@@ -20,7 +20,7 @@ import CustomSidebar from "@/components/customSidebar"
 import CustomFormField from "@/components/CustomFormField"
 import { FormFieldType } from "@/components/forms/UserForm"
 
-interface UserType {
+export interface UserType {
   _id: string
   fullName: string
   email: string
@@ -105,8 +105,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     getUserDetails()
-    getAccounts()
-    getBills()
+    // getAccounts()
+    // getBills()
   }, [getUserDetails, getAccounts, getBills])
 
   const onSubmitUserForm = async (values: z.infer<typeof userFormSchema>) => {
@@ -150,7 +150,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex h-screen text-white">
+    <div className="flex h-screen text-white pl-16 md:pl-64">
       {/* Sidebar */}
       <CustomSidebar />
 
