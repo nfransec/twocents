@@ -6,12 +6,19 @@ import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { CardType } from '@/app/cards/page';
 
 const formSchema = z.object({
   cardName: z.string().min(2, { message: "Card name must be at least 2 characters." }),
 })
 
-export function AddCardModal() {
+export interface AddCardModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onAddCard: (newCard: CardType) => void;
+}
+
+export const AddCardModal: React.FC<AddCardModalProps> = ({ isOpen, onClose, onAddCard }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -33,16 +40,22 @@ export function AddCardModal() {
       </DialogTrigger>
       <DialogContent>
         <DialogTitle>Add New Card</DialogTitle>
-        <Form onSubmit={onSubmit}>
-          <FormField>
-            <FormLabel>Card Name</FormLabel>
-            <FormControl>
-              <Input type="text" name="cardName" />
-            </FormControl>
-          </FormField>
-          <FormItem>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <FormField
+              control={form.control}
+              name="cardName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Card Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
             <Button type="submit" disabled={isLoading}>Add Card</Button>
-          </FormItem>
+          </form>
         </Form>
       </DialogContent>
     </Dialog>

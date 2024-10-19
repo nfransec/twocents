@@ -5,7 +5,7 @@ import axios from "axios"
 import { toast } from "sonner"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { AddCardModal } from "@/components/AddCardModal"
+import { AddCardModal, AddCardModalProps } from "@/components/AddCardModal"
 import { Bell, CreditCard, FileText, HelpCircle, Home, LogOut, Trash2, Pencil, User } from "lucide-react"
 import CustomSidebar from "@/components/customSidebar"
 import CustomFormField from "@/components/CustomFormField"
@@ -106,4 +106,3 @@ export default function CardsPage() {
     </div>
   )
 }
-
