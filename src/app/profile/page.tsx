@@ -10,81 +10,59 @@ import * as z from "zod"
 import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Icons } from "@/components/ui/icons"
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Pencil } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { Bell, CreditCard, FileText, HelpCircle, Home, LogOut, User } from "lucide-react"
+import CustomSidebar from "@/components/customSidebar"
+import CustomFormField from "@/components/CustomFormField"
+import { FormFieldType } from "@/components/forms/UserForm"
 
-interface CardType {
-    _id: string;
-    cardName: string;
-    bankName: string;
-    cardLimit: number;
-    billingDate: string;
-    outstandingAmount: number;
-    imageUrl: string;
-  }
+interface UserType {
+  _id: string
+  fullName: string
+  email: string
+  phoneNumber: string
+  username: string
+  profilePicture: string
+}
 
+interface AccountType {
+  _id: string
+  accountNumber: string
+  isBlocked: boolean
+}
+
+interface BillType {
+  _id: string
+  name: string
+  isPaid: boolean
+}
 
 const userFormSchema = z.object({
-    fullName: z.string().min(2, {
-      message: "Full name must be at least 2 characters.",
-    }),
-    email: z.string().email({
-      message: "Please enter a valid email.",
-    }),
-})
-
-const cardFormSchema = z.object({
-    cardName: z.string().min(2, {
-      message: "Please select a card name.",
-    }),
-    bankName: z.string().min(2, {
-      message: "Please select a bank name.",
-    }),
-    cardLimit: z.coerce.number().min(0, {
-      message: "Card limit must be a positive number.",
-    }),
-    billingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
-      message: "Please enter a valid date in YYYY-MM-DD format.",
-    }),
-    outstandingAmount: z.coerce.number().min(0, {
-      message: "Outstanding amount must be a positive number.",
-    }),
+  fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
+  email: z.string().email({ message: "Please enter a valid email." }),
+  phoneNumber: z.string().min(10, { message: "Please enter a valid phone number." }),
+  username: z.string().min(2, { message: "Username must be at least 2 characters." }),
 })
 
 export default function ProfilePage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
-  const [isEditing, setIsEditing] = useState(false)
-  const [cards, setCards] = useState<CardType[]>([])
-  const [isAddingCard, setIsAddingCard] = useState(false)
-  const [editingCard, setEditingCard] = useState<CardType | null>(null)
-
-  const cardNames = ["PlatinumTravel", 'SimplyCLICK', 'Ixigo', 'Play', 'AmazonPay', 'GoldCharge', 'Infinia', 'MRCC', 'TataNeu', 'PowerPlus',]
-  const bankNames = ['Amex', 'SBI', 'AU', 'RBL', 'ICICI', 'HDFC', 'IDFC', 'Federal']
+  const [user, setUser] = useState<UserType | null>(null)
+  const [accounts, setAccounts] = useState<AccountType[]>([])
+  const [bills, setBills] = useState<BillType[]>([])
+  const [smsAlerts, setSmsAlerts] = useState(false)
 
   const userForm = useForm<z.infer<typeof userFormSchema>>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
       fullName: "",
       email: "",
-    },
-  })
-
-  const cardForm = useForm<z.infer<typeof cardFormSchema>>({
-    resolver: zodResolver(cardFormSchema),
-    defaultValues: {
-      cardName: "",
-      bankName: "",
-      cardLimit: 0,
-      billingDate: "",
-      outstandingAmount: 0,
-      //imageUrl: "",
+      username: "",
+      phoneNumber: "",
     },
   })
 
@@ -92,9 +70,13 @@ export default function ProfilePage() {
     setIsLoading(true)
     try {
       const res = await axios.get('/api/users/me')
+      const userData = res.data.data
+      setUser(userData)
       userForm.reset({
-        fullName: res.data.data.fullName,
-        email: res.data.data.email,
+        fullName: userData?.fullName ?? "",
+        email: userData?.email ?? "",
+        phoneNumber: userData?.phoneNumber ?? "",
+        username: userData?.username ?? "",
       })
     } catch (error) {
       handleError(error)
@@ -103,71 +85,35 @@ export default function ProfilePage() {
     }
   }, [userForm])
 
-  const getCards = useCallback(async () => {
+  const getAccounts = useCallback(async () => {
     try {
-      const res = await axios.get('/api/cards')
-      setCards(res.data.data)
+      const res = await axios.get('/api/accounts')
+      setAccounts(res.data.data)
     } catch (error) {
       handleError(error)
     }
   }, [])
 
-  const getImageUrl = (cardName: string, bankName: string) => {
-    return `/${cardName.toLowerCase()}-${bankName.toLowerCase()}.png`
-  }
+  const getBills = useCallback(async () => {
+    try {
+      const res = await axios.get('/api/bills')
+      setBills(res.data.data)
+    } catch (error) {
+      handleError(error)
+    }
+  }, [])
 
   useEffect(() => {
     getUserDetails()
-    getCards()
-  }, [getUserDetails, getCards])
+    getAccounts()
+    getBills()
+  }, [getUserDetails, getAccounts, getBills])
 
   const onSubmitUserForm = async (values: z.infer<typeof userFormSchema>) => {
     setIsLoading(true)
     try {
-    //   const res = 
       await axios.put('/api/users/update', values)
       toast.success("Profile updated successfully")
-      setIsEditing(false)
-    } catch (error) {
-      handleError(error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const onSubmitCardForm = async (values: z.infer<typeof cardFormSchema>) => {
-    setIsLoading(true)
-    try {
-      const formattedValues = {
-        ...values,
-        cardLimit: Number(values.cardLimit),
-        outstandingAmount: Number(values.outstandingAmount),
-        imageUrl: getImageUrl(values.cardName, values.bankName),
-      };
-      if (editingCard) {
-        await axios.put('/api/cards', { id: editingCard._id, ...formattedValues })
-        toast.success("Card updated successfully")
-        setEditingCard(null)
-      } else {
-        await axios.post('/api/cards', formattedValues)
-        toast.success("Card added successfully")
-        setIsAddingCard(false)
-      }
-      getCards()
-      cardForm.reset()
-    } catch (error) {
-      handleError(error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const logout = async () => {
-    setIsLoading(true)
-    try {
-      await axios.get('/api/users/logout')
-      toast.success('Logout successful')
-      router.push('/login')
     } catch (error) {
       handleError(error)
     } finally {
@@ -190,221 +136,167 @@ export default function ProfilePage() {
     }
   }
 
+  const logout = async () => {
+    setIsLoading(true)
+    try {
+      await axios.get('/api/users/logout')
+      toast.success('Logout successful')
+      router.push('/login')
+    } catch (error) {
+      handleError(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
-    <div className="container flex items-center justify-center min-h-screen text-white">
-      <Card className="w-[800px]">
-        <CardHeader>
-          <CardTitle>Profile</CardTitle>
-          <CardDescription>View and manage your account details</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="profile">
-            <TabsList>
-              <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="cards">Cards</TabsTrigger>
-            </TabsList>
-            <TabsContent value="profile">
-              <Form {...userForm}>
-                <form onSubmit={userForm.handleSubmit(onSubmitUserForm)} className="space-y-8">
-                  <FormField
-                    control={userForm.control}
-                    name="fullName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} disabled={!isEditing} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={userForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input {...field} disabled={!isEditing} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {isEditing && (
-                    <Button type="submit" disabled={isLoading}>
-                      {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
-                      Save Changes
-                    </Button>
-                  )}
-                </form>
-              </Form>
-            </TabsContent>
-            <TabsContent value="cards">
-              <div className="space-y-4">
-                {cards.map((card) => (
-                  <Card key={card._id}>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                      <div>
-                        <CardTitle>{card.cardName}</CardTitle>
-                        <CardDescription>{card.bankName}</CardDescription>
-                      </div>
-                      <Button variant="ghost" onClick={() => {
-                        setEditingCard(card)
-                        cardForm.reset(card)
-                      }}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center space-x-4">
-                        <div className="flex-shrink-0">
-                          <Image 
-                            src={getImageUrl(card.cardName, card.bankName)}
-                            alt={`${card.cardName} ${card.bankName}`}
-                            width={100} 
-                            height={60} 
-                            className="rounded-md" 
-                        />
-                        </div>
-                        <div className="flex-grow">
-                          <p>Card Limit: ${card.cardLimit}</p>
-                          <p>Billing Date: {new Date(card.billingDate).toLocaleDateString()}</p>
-                          <p>Outstanding Amount: ${card.outstandingAmount}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                <Dialog open={isAddingCard || editingCard !== null} onOpenChange={(open) => {
-                  if (!open) {
-                    setIsAddingCard(false)
-                    setEditingCard(null)
-                    cardForm.reset()
-                  }
-                }}>
-                  <DialogTrigger asChild>
-                    <Button onClick={() => setIsAddingCard(true)}>Add New Card</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>{editingCard ? 'Edit Card' : 'Add New Card'}</DialogTitle>
-                      <DialogDescription>Enter your card details below.</DialogDescription>
-                    </DialogHeader>
-                    <Form {...cardForm}>
-                      <form onSubmit={cardForm.handleSubmit(onSubmitCardForm)} className="space-y-4">
-                        <FormField
-                          control={cardForm.control}
-                          name="cardName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Card Name</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select a card name" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {cardNames.map((name) => (
-                                    <SelectItem key={name} value={name}>{name}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={cardForm.control}
-                          name="bankName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Bank Name</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select a bank name" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {bankNames.map((name) => (
-                                    <SelectItem key={name} value={name}>{name}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={cardForm.control}
-                          name="cardLimit"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Card Limit</FormLabel>
-                              <FormControl>
-                                <Input {...field} type="number" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={cardForm.control}
-                          name="billingDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Billing Date</FormLabel>
-                              <FormControl>
-                                <Input {...field} type="date" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={cardForm.control}
-                          name="outstandingAmount"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Outstanding Amount</FormLabel>
-                              <FormControl>
-                                <Input {...field} type="number" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <Button type="submit" disabled={isLoading}>
-                          {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
-                          {editingCard ? 'Update Card' : 'Add Card'}
-                        </Button>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
+    <div className="flex h-screen text-white">
+      {/* Sidebar */}
+      <CustomSidebar />
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <header className="shadow-sm">
+          <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <h1 className="text-2xl font-semibold text-white mt-4">{user?.fullName?.split(' ')[0]}'s dashboard</h1>
+            <div className="flex items-center">
+              <Bell className="h-5 w-5 text-gray-400 mr-4" />
+              <div className="flex items-center">
+                <Image
+                  src={user?.profilePicture || "/assets/icons/user2.svg"}
+                  alt="Profile"
+                  width={32}
+                  height={32}
+                  className="rounded-full mr-2"
+                />
+                <span className="text-sm font-medium text-white">Hello, <span className="font-bold text-green-500">{user?.fullName?.split(' ')[0]}</span></span>
               </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          {!isEditing ? (
-            <Button variant="outline" onClick={() => setIsEditing(true)} disabled={isLoading}>
-              Edit Profile
-            </Button>
-          ) : (
-            <Button variant="outline" onClick={() => setIsEditing(false)} disabled={isLoading}>
-              Cancel
-            </Button>
-          )}
-          <Button onClick={logout} disabled={isLoading} className="bg-green-500">
-            {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
-            Logout
-          </Button>
-        </CardFooter>
-      </Card>
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="px-4 py-6 sm:px-0">
+            <div className="flex flex-col md:flex-row gap-6">
+              {/* Profile Card */}
+              <Card className="flex-1">
+                <CardHeader>
+                  <CardTitle>My profile</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col items-center mb-6">
+                    <Image
+                      src={user?.profilePicture || "/assets/icons/user2.svg"}
+                      alt="Profile"
+                      width={200}
+                      height={200}
+                      className="rounded-full mb-4"
+                    />
+                    <p className="text-sm text-gray-500">Last login: 07 Aug 2021 14:04</p>
+                  </div>
+                  <Form {...userForm}>
+                    <form onSubmit={userForm.handleSubmit(onSubmitUserForm)} className="space-y-4">
+
+                      <CustomFormField
+                          fieldType={FormFieldType.INPUT}
+                          control={userForm.control}
+                          name="fullName"
+                          placeholder="John Doe"
+                          iconSrc="/assets/icons/user.svg"
+                          iconAlt="user"
+                      />
+
+                      <CustomFormField
+                        fieldType={FormFieldType.INPUT}
+                        control={userForm.control}
+                        name="username"
+                        placeholder="johndoe"
+                        iconSrc="/assets/icons/username.svg"
+                        iconAlt="user"
+                        description="This is your unique username on the platform."
+                      />
+
+                      <CustomFormField
+                          fieldType={FormFieldType.INPUT}
+                          control={userForm.control}
+                          name="email"
+                          placeholder="johndoe@gmail.com"
+                          iconSrc="/assets/icons/email2.svg"
+                          iconAlt="email"
+                      />
+        
+                      <CustomFormField
+                          fieldType={FormFieldType.PHONE_INPUT}
+                          control={userForm.control}
+                          name="phoneNumber"
+                          placeholder="(555) 123-4567"
+                      />
+                    
+                      <div className="flex flex-row space-x-4 mt-6 justify-between">
+                        <Button type="submit" className="w-full bg-green-500" disabled={isLoading}>
+                          {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
+                          Update profile
+                        </Button>
+                        <Button
+                          type="button"
+                          className="w-full bg-red-500 text-white"
+                          onClick={logout}
+                          disabled={isLoading}
+                        >
+                          {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
+                          Logout
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+
+              {/* Accounts and Bills Cards */}
+              <div className="flex-1 space-y-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>My Accounts</CardTitle>
+                    <Button variant="outline" size="sm">Edit</Button>
+                  </CardHeader>
+                  <CardContent>
+                    {accounts.map((account) => (
+                      <div key={account._id} className="flex justify-between items-center mb-2">
+                        <span>{account.accountNumber}</span>
+                        <Button
+                          variant={account.isBlocked ? "destructive" : "secondary"}
+                          size="sm"
+                        >
+                          {account.isBlocked ? "Unblock account" : "Block Account"}
+                        </Button>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>My bills</CardTitle>
+                    <Button variant="outline" size="sm">Filter by</Button>
+                  </CardHeader>
+                  <CardContent>
+                    {bills.map((bill) => (
+                      <div key={bill._id} className="flex justify-between items-center mb-2">
+                        <span>{bill.name}</span>
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          bill.isPaid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {bill.isPaid ? 'Bill paid' : 'Not paid'}
+                        </span>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   )
 }
