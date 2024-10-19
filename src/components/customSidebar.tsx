@@ -3,7 +3,6 @@ import { Bell, CreditCard, FileText, HelpCircle, Home, LogOut, User } from "luci
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { logout } from '@/actions/userActions'
 
 const CustomSidebar = () => {
   const pathname = usePathname()
