@@ -19,6 +19,7 @@ import { Bell, CreditCard, FileText, HelpCircle, Home, LogOut, User } from "luci
 import CustomSidebar from "@/components/customSidebar"
 import CustomFormField from "@/components/CustomFormField"
 import { FormFieldType } from "@/components/forms/UserForm"
+import BottomNavigation from "@/components/BottomNavigation"
 
 export interface UserType {
   _id: string
@@ -29,17 +30,6 @@ export interface UserType {
   profilePicture: string
 }
 
-interface AccountType {
-  _id: string
-  accountNumber: string
-  isBlocked: boolean
-}
-
-interface BillType {
-  _id: string
-  name: string
-  isPaid: boolean
-}
 
 const userFormSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
@@ -52,9 +42,7 @@ export default function ProfilePage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState<UserType | null>(null)
-  const [accounts, setAccounts] = useState<AccountType[]>([])
-  const [bills, setBills] = useState<BillType[]>([])
-  const [smsAlerts, setSmsAlerts] = useState(false)
+
 
   const userForm = useForm<z.infer<typeof userFormSchema>>({
     resolver: zodResolver(userFormSchema),
@@ -85,29 +73,10 @@ export default function ProfilePage() {
     }
   }, [userForm])
 
-  const getAccounts = useCallback(async () => {
-    try {
-      const res = await axios.get('/api/accounts')
-      setAccounts(res.data.data)
-    } catch (error) {
-      handleError(error)
-    }
-  }, [])
-
-  const getBills = useCallback(async () => {
-    try {
-      const res = await axios.get('/api/bills')
-      setBills(res.data.data)
-    } catch (error) {
-      handleError(error)
-    }
-  }, [])
 
   useEffect(() => {
     getUserDetails()
-    // getAccounts()
-    // getBills()
-  }, [getUserDetails, getAccounts, getBills])
+  }, [getUserDetails])
 
   const onSubmitUserForm = async (values: z.infer<typeof userFormSchema>) => {
     setIsLoading(true)
@@ -150,12 +119,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex h-screen text-white pl-16 md:pl-64">
-      {/* Sidebar */}
-      <CustomSidebar />
-
+    <div className="flex flex-col min-h-screen text-white pb-16 md:pb-0">
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto px-4 md:px-6 lg:px-8">
         <header className="shadow-sm">
           <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
             <h1 className="text-2xl font-semibold text-white mt-4">{user?.fullName?.split(' ')[0]}&#39;s dashboard</h1>
@@ -252,50 +218,10 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
 
-              {/* Accounts and Bills Cards */}
-              <div className="flex-1 space-y-6">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>My Accounts</CardTitle>
-                    <Button variant="outline" size="sm">Edit</Button>
-                  </CardHeader>
-                  <CardContent>
-                    {accounts.map((account) => (
-                      <div key={account._id} className="flex justify-between items-center mb-2">
-                        <span>{account.accountNumber}</span>
-                        <Button
-                          variant={account.isBlocked ? "destructive" : "secondary"}
-                          size="sm"
-                        >
-                          {account.isBlocked ? "Unblock account" : "Block Account"}
-                        </Button>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>My bills</CardTitle>
-                    <Button variant="outline" size="sm">Filter by</Button>
-                  </CardHeader>
-                  <CardContent>
-                    {bills.map((bill) => (
-                      <div key={bill._id} className="flex justify-between items-center mb-2">
-                        <span>{bill.name}</span>
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          bill.isPaid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {bill.isPaid ? 'Bill paid' : 'Not paid'}
-                        </span>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </div>
             </div>
           </div>
         </main>
+        <BottomNavigation />
       </div>
     </div>
   )
