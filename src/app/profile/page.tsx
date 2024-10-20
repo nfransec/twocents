@@ -21,6 +21,7 @@ import CustomFormField from "@/components/CustomFormField"
 import { FormFieldType } from "@/components/forms/UserForm"
 import BottomNavigation from "@/components/BottomNavigation"
 
+
 export interface UserType {
   _id: string
   fullName: string
@@ -120,7 +121,6 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col min-h-screen text-white pb-16 md:pb-0">
-      {/* Main Content */}
       <div className="flex-1 overflow-auto px-4 md:px-6 lg:px-8">
         <header className="shadow-sm">
           <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">

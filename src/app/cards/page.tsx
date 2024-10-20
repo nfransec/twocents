@@ -13,6 +13,7 @@ import { FormFieldType } from "@/components/forms/UserForm"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { UserType } from "@/app/profile/page"
+import Link from "next/link"
 
 
 export interface CardType {
@@ -112,9 +113,8 @@ export default function CardsPage() {
 
 
   return (
-    <div className="flex h-screen text-white pl-16 md:pl-64 relative">
-        <CustomSidebar />
-        <div className="flex-1 overflow-auto">
+    <div className="flex flex-col min-h-screen text-white pb-16 md:pb-0">
+        <div className="flex-1 overflow-auto px-4 md:px-6 lg:px-8">
             <header className="shadow-sm">
                 <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
                     <h1 className="text-2xl font-semibold text-white mt-4">My Cards</h1>

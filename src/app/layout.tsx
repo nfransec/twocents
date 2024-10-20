@@ -5,8 +5,8 @@ import { Toaster } from "sonner";
 
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from "@/components/theme-provider";
-import BottomNavigation from "@/components/BottomNavigation";
-import { isAuthenticatedServer } from "@/lib/auth";
+import ConditionalBottomNav from "@/components/ConditionalBottomNav";
+import ConditionalHeader from "@/components/ConditionalHeader";
 
 const fontSans = Plus_Jakarta_Sans({ 
   subsets: ['latin'],
@@ -19,12 +19,11 @@ export const metadata: Metadata = {
   description: "Track and Manage your credit cards.",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
   return (
     <html lang="en">
       <body className={cn('min-h-screen bg-dark-300 font-sans antialiased', fontSans.variable)}>
@@ -33,10 +32,11 @@ export default async function RootLayout({
           defaultTheme='dark'
         >
           <div className="flex flex-col min-h-screen">
-            <main className="flex-1">
+            <ConditionalHeader />
+            <main className="flex-1 p-4">
               {children}
             </main>
-            <BottomNavigation />
+            <ConditionalBottomNav />
           </div>
           <Toaster richColors position="top-right" />
         </ThemeProvider>

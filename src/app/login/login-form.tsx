@@ -52,7 +52,8 @@ export function LoginForm() {
     try {
       await axios.post('/api/users/login', values)
       toast.success("Login successful")
-      router.push('/profile')
+      // router.push('/profile')
+      window.location.href = '/profile';
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         toast.error(error.response.data.error)
