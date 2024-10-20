@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from "@/components/theme-provider";
 import BottomNavigation from "@/components/BottomNavigation";
+import { isAuthenticatedServer } from "@/lib/auth";
 
 const fontSans = Plus_Jakarta_Sans({ 
   subsets: ['latin'],
@@ -18,11 +19,14 @@ export const metadata: Metadata = {
   description: "Track and Manage your credit cards.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  const initialAuthState = await isAuthenticatedServer();
+
   return (
     <html lang="en">
       <body className={cn('min-h-screen bg-dark-300 font-sans antialiased', fontSans.variable)}>
@@ -34,9 +38,9 @@ export default function RootLayout({
             <main className="flex-1">
               {children}
             </main>
-            <BottomNavigation />
+            {initialAuthState && <BottomNavigation />}
           </div>
-          <Toaster richColors />
+          <Toaster richColors position="top-right" />
         </ThemeProvider>
       </body>
     </html>
