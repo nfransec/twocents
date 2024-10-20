@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans} from 'next/font/google'
+import { Plus_Jakarta_Sans } from 'next/font/google'
 import "./globals.css";
 import { Toaster } from "sonner";
 
@@ -25,8 +25,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
 
-  const initialAuthState = await isAuthenticatedServer();
-
   return (
     <html lang="en">
       <body className={cn('min-h-screen bg-dark-300 font-sans antialiased', fontSans.variable)}>
@@ -38,7 +36,7 @@ export default async function RootLayout({
             <main className="flex-1">
               {children}
             </main>
-            {initialAuthState && <BottomNavigation />}
+            <BottomNavigation />
           </div>
           <Toaster richColors position="top-right" />
         </ThemeProvider>

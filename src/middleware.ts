@@ -23,5 +23,10 @@ export const config = {
         '/profile',
         '/login',
         '/signup',
+        '/home',
+        '/search',
+        '/cards',
+        '/history',
+        // Add any other routes that should be protected or public here
     ]
 }
