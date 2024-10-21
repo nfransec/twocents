@@ -12,6 +12,7 @@ const cardSchema = z.object({
   billingDate: z.string(),
   outstandingAmount: z.number(),
   imageUrl: z.string().optional(),
+  cardNumber: z.string().optional(), // Add this line
 });
 
 const cardUpdateSchema = cardSchema.partial().extend({

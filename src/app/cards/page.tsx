@@ -18,7 +18,8 @@ export interface CardType {
   cardLimit: number;
   billingDate: string;
   outstandingAmount: number;
-  imageUrl?: string;
+  imageUrl: string;
+  cardNumber?: string; // Add this optional property
 }
 
 export default function CardsPage() {
@@ -160,32 +161,45 @@ export default function CardsPage() {
             {cards.map((card) => (
               <div key={card._id} className="flip-card">
                 <div className="flip-card-inner">
-                  <div className="flip-card-front">
-                    <div className="credit-card bg-gradient-to-br from-purple-600 to-blue-500">
-                      <div className="credit-card-content">
-                        <h3 className="text-xl font-bold mb-2">{card.cardName}</h3>
+                  <div className="flip-card-front bg-gradient-to-br from-purple-600 to-blue-500 p-6 rounded-lg shadow-lg">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h2 className="text-2xl font-bold mb-2">{card.cardName}</h2>
                         <p className="text-sm mb-4">{card.bankName}</p>
                         <p className="text-lg">
                           •••• •••• •••• {card.cardNumber ? card.cardNumber.slice(-4) : 'XXXX'}
                         </p>
                       </div>
+                      {/* <Image
+                        src={card.imageUrl || '/default-card-image.png'}
+                        alt={card.cardName}
+                        width={60}
+                        height={40}
+                        className="rounded"
+                      /> */}
+                    </div>
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <p className="text-sm">Outstanding</p>
+                        <p className={card.outstandingAmount > 10000 ? "text-lg font-semibold text-red-800" : "text-lg font-semibold text-green-600"}>₹{card.outstandingAmount.toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm">Billing Date</p>
+                        <p className="text-lg font-semibold">{new Date(card.billingDate).getDate()}</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flip-card-back">
-                    <div className="credit-card bg-gradient-to-br from-gray-700 to-gray-900">
-                      <div className="credit-card-content">
-                        <p>Limit: ₹{card.cardLimit || 'N/A'}</p>
-                        <p>Billing Date: {card.billingDate || 'N/A'}</p>
-                        <p>Outstanding: ₹{card.outstandingAmount || 'N/A'}</p>
-                        <div className="flex justify-end mt-4 space-x-2">
-                          <Button onClick={() => handleEditCard(card)} size="sm" className="bg-blue-500 hover:bg-blue-600">
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button onClick={() => handleDeleteCard(card._id)} size="sm" className="bg-red-500 hover:bg-red-600">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
+                  <div className="flip-card-back bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h3 className="text-xl font-bold mb-4">Card Details</h3>
+                    <p className="mb-2">Credit Limit: ₹{card.cardLimit.toLocaleString()}</p>
+                    <p className="mb-4">Billing Date: {new Date(card.billingDate).toLocaleDateString()}</p>
+                    <div className="flex justify-end mt-4 space-x-2">
+                      <Button onClick={() => handleEditCard(card)} size="sm" className="bg-blue-500 hover:bg-blue-600">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button onClick={() => handleDeleteCard(card._id)} size="sm" className="bg-red-500 hover:bg-red-600">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </div>

@@ -41,7 +41,7 @@ export function EditCardModal({ isOpen, onClose, onEditCard, card }: EditCardMod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] text-white">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Card</DialogTitle>
         </DialogHeader>
@@ -50,7 +50,7 @@ export function EditCardModal({ isOpen, onClose, onEditCard, card }: EditCardMod
             <SelectTrigger>
               <SelectValue placeholder="Select a card" />
             </SelectTrigger>
-            <SelectContent className='text-green-800'>
+            <SelectContent>
               {Object.keys(cardToBankMapping).map((cardName) => (
                 <SelectItem key={cardName} value={cardName}>
                   {cardName}
@@ -63,6 +63,13 @@ export function EditCardModal({ isOpen, onClose, onEditCard, card }: EditCardMod
             value={editedCard.bankName}
             readOnly
             placeholder="Bank Name"
+          />
+          <Input
+            name="cardNumber"
+            value={editedCard.cardNumber || ''}
+            onChange={handleInputChange}
+            placeholder="Card Number (optional)"
+            maxLength={16}
           />
           <Input
             name="cardLimit"
@@ -88,7 +95,7 @@ export function EditCardModal({ isOpen, onClose, onEditCard, card }: EditCardMod
             placeholder="Outstanding Amount"
             required
           />
-          <Button type="submit" className='bg-green-500 hover:bg-green-700 w-full'>Save Changes</Button>
+          <Button type="submit">Save Changes</Button>
         </form>
       </DialogContent>
     </Dialog>

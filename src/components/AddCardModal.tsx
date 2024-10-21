@@ -19,7 +19,8 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
     cardLimit: 0,
     billingDate: '',
     outstandingAmount: 0,
-    imageUrl: ''
+    imageUrl: '',
+    cardNumber: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,6 +98,13 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
             onChange={handleInputChange}
             placeholder="Outstanding Amount"
             required
+          />
+          <Input
+            name="cardNumber"
+            value={newCard.cardNumber || ''}
+            onChange={handleInputChange}
+            placeholder="Card Number (optional)"
+            maxLength={16}
           />
           <Button type="submit" className='bg-green-500 hover:bg-green-700 w-full'>Add Card</Button>
         </form>
