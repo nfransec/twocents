@@ -88,7 +88,7 @@ export function EditCardModal({ isOpen, onClose, onEditCard, card }: EditCardMod
             placeholder="Outstanding Amount"
             required
           />
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit" className='bg-green-500 hover:bg-green-700 w-full'>Save Changes</Button>
         </form>
       </DialogContent>
     </Dialog>

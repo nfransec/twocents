@@ -60,7 +60,7 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
             <SelectTrigger>
               <SelectValue placeholder="Select a card" />
             </SelectTrigger>
-            <SelectContent className='text-green-800'>
+            <SelectContent className='text-white'>
               {Object.keys(cardToBankMapping).map((cardName) => (
                 <SelectItem key={cardName} value={cardName}>
                   {cardName}
@@ -98,7 +98,7 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
             placeholder="Outstanding Amount"
             required
           />
-          <Button type="submit">Add Card</Button>
+          <Button type="submit" className='bg-green-500 hover:bg-green-700 w-full'>Add Card</Button>
         </form>
       </DialogContent>
     </Dialog>
