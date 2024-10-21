@@ -18,6 +18,11 @@ const cardUpdateSchema = cardSchema.partial().extend({
   _id: z.string(),
 });
 
+interface JwtPayload {
+  id: string;
+}
+
+
 export async function POST(request: NextRequest) {
   try {
     await connectToDatabase();
