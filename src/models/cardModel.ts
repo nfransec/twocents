@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { cardToBankMapping } from '@/utils/cardMappings';
 
 const cardSchema = new mongoose.Schema({
   userId: {
@@ -8,21 +9,21 @@ const cardSchema = new mongoose.Schema({
   },
   cardName: {
     type: String,
-    required: [true, 'Please provide a card name'],
-    enum: ["PlatinumTravel", 'SimplyCLICK', 'Ixigo', 'Play', 'AmazonPay', 'GoldCharge', 'Infinia', 'MRCC', 'TataNeu', 'PowerPlus', 'Scapia'],
+    enum: Object.keys(cardToBankMapping),
+    required: true,
   },
   bankName: {
     type: String,
-    required: [true, 'Please provide a bank name'],
-    enum: ['amex', 'sbi', 'au', 'rbl', 'icici', 'hdfc', 'idfc'],
+    enum: Object.values(cardToBankMapping),
+    required: true,
   },
   cardLimit: {
     type: Number,
-    required: [true, 'Please provide a card limit'],
+    required: true,
   },
   billingDate: {
     type: Date,
-    required: [true, 'Please provide a billing date'],
+    required: true,
   },
   outstandingAmount: {
     type: Number,
@@ -30,10 +31,9 @@ const cardSchema = new mongoose.Schema({
   },
   imageUrl: {
     type: String,
-    required: true,
   },
 }, { timestamps: true });
 
-const Card = mongoose.models.cards || mongoose.model('cards', cardSchema);
+const Card = mongoose.models.Card || mongoose.model('Card', cardSchema);
 
 export default Card;

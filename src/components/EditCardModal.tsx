@@ -6,32 +6,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CardType } from '@/app/cards/page';
 import { cardToBankMapping, CardName } from '@/utils/cardMappings';
 
-interface AddCardModalProps {
+interface EditCardModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddCard: (newCard: Omit<CardType, '_id'>) => void;
+  onEditCard: (editedCard: CardType) => void;
+  card: CardType;
 }
 
-export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) {
-  const [newCard, setNewCard] = useState<Omit<CardType, '_id'>>({
-    cardName: '',
-    bankName: '',
-    cardLimit: 0,
-    billingDate: '',
-    outstandingAmount: 0,
-    imageUrl: ''
-  });
+export function EditCardModal({ isOpen, onClose, onEditCard, card }: EditCardModalProps) {
+  const [editedCard, setEditedCard] = useState<CardType>(card);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setNewCard(prev => ({
+    setEditedCard(prev => ({
       ...prev,
       [name]: name === 'cardLimit' || name === 'outstandingAmount' ? Number(value) : value
     }));
   };
 
   const handleCardNameChange = (value: CardName) => {
-    setNewCard(prev => ({
+    setEditedCard(prev => ({
       ...prev,
       cardName: value,
       bankName: cardToBankMapping[value],
@@ -41,11 +35,7 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCard.cardName || !newCard.bankName || !newCard.cardLimit || !newCard.billingDate) {
-      alert('Please fill all required fields');
-      return;
-    }
-    onAddCard(newCard);
+    onEditCard(editedCard);
     onClose();
   };
 
@@ -53,10 +43,10 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] text-white">
         <DialogHeader>
-          <DialogTitle>Add New Card</DialogTitle>
+          <DialogTitle>Edit Card</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Select onValueChange={handleCardNameChange}>
+          <Select onValueChange={handleCardNameChange} defaultValue={editedCard.cardName}>
             <SelectTrigger>
               <SelectValue placeholder="Select a card" />
             </SelectTrigger>
@@ -70,14 +60,14 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
           </Select>
           <Input
             name="bankName"
-            value={newCard.bankName}
+            value={editedCard.bankName}
             readOnly
             placeholder="Bank Name"
           />
           <Input
             name="cardLimit"
             type="number"
-            value={newCard.cardLimit}
+            value={editedCard.cardLimit}
             onChange={handleInputChange}
             placeholder="Card Limit"
             required
@@ -85,7 +75,7 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
           <Input
             name="billingDate"
             type="date"
-            value={newCard.billingDate}
+            value={editedCard.billingDate.split('T')[0]}
             onChange={handleInputChange}
             placeholder="Billing Date"
             required
@@ -93,12 +83,12 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
           <Input
             name="outstandingAmount"
             type="number"
-            value={newCard.outstandingAmount}
+            value={editedCard.outstandingAmount}
             onChange={handleInputChange}
             placeholder="Outstanding Amount"
             required
           />
-          <Button type="submit">Add Card</Button>
+          <Button type="submit">Save Changes</Button>
         </form>
       </DialogContent>
     </Dialog>

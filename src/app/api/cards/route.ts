@@ -3,51 +3,58 @@ import { connectToDatabase } from "@/database/database";
 import Card from "@/models/cardModel";
 import jwt from "jsonwebtoken";
 import { z } from 'zod';
+import { cardToBankMapping, CardName } from '@/utils/cardMappings';
 
 const cardSchema = z.object({
-  cardName: z.enum(['platinumtravel', 'mrcc', 'goldcharge', 'simplyclick', 'prime', 'elite', 'bpcloctane', 'cashback', 'clubvistaraprime', 'yatra', 'simplysave', 'irctcplatinum', 'altura', 'alturaplus', 'ixigo', 'lit', 'vetta', 'zenith', 'zenithplus', 'indianoilextra', 'irctc', 'icon', 'paisabazarduet', 'play', 'worldsafari', 'shoprite', 'adanione', 'amazonpay', 'emiratesskywards', 'hpclcoral', 'hpcl', 'sapphiro', 'coral', 'emeralde', 'hpclsupersaver', 'tataneu', '6erewards', '6erewardsxl', 'allmiles', 'easyemi', 'pixelplay', 'platinumedge', 'times', 'millenia', 'regalia', 'regaliafirst', 'infinia', 'dinersclub', 'clubvistara', 'ashva', 'mayura', 'millenia', 'onecard', 'powerplus']),
-  bankName: z.enum(['amex', 'sbi', 'au', 'rbl', 'icici', 'hdfc', 'idfc']),
-  cardLimit: z.number().min(0),
-  billingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  outstandingAmount: z.number().min(0),
+  cardName: z.enum(Object.keys(cardToBankMapping) as [CardName, ...CardName[]]),
+  bankName: z.enum(Object.values(cardToBankMapping) as [string, ...string[]]),
+  cardLimit: z.number(),
+  billingDate: z.string(),
+  outstandingAmount: z.number(),
   imageUrl: z.string().optional(),
 });
 
-interface JwtPayload {
-  id: string;
-}
+const cardUpdateSchema = cardSchema.partial().extend({
+  _id: z.string(),
+});
 
 export async function POST(request: NextRequest) {
   try {
     await connectToDatabase();
 
     const token = request.cookies.get("token")?.value || "";
-    const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as JwtPayload;
+    const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as { id: string };
     const userId = decodedToken.id;
 
-    const reqBody = await request.json();
-    const validatedData = cardSchema.parse(reqBody);
+    const body = await request.json();
+    console.log('Received body:', JSON.stringify(body));
 
-    const imageUrl = `/${validatedData.cardName.toLowerCase()}-${validatedData.bankName.toLowerCase()}.png`;
-    console.log(imageUrl);
-    const newCard = new Card({
-      userId,
-      ...validatedData,
-    });
+    try {
+      const validatedData = cardSchema.parse(body);
+      console.log('Validated data:', validatedData);
 
-    await newCard.save();
+      const newCard = new Card({
+        userId,
+        ...validatedData,
+      });
 
-    return NextResponse.json({
-      message: "Card added successfully",
-      success: true,
-      data: newCard,
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      const errorMessage = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`).join(', ')
-      return NextResponse.json({ error: errorMessage }, { status: 400 });
+      await newCard.save();
+
+      return NextResponse.json({
+        message: "Card added successfully",
+        success: true,
+        data: newCard,
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.error('Zod validation error:', error);
+        const errorMessage = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`).join(', ');
+        return NextResponse.json({ error: errorMessage }, { status: 400 });
+      }
+      throw error;
     }
-    console.error(error);
+  } catch (error) {
+    console.error('Error in POST /api/cards:', error);
     return NextResponse.json({ error: "An error occurred while adding the card" }, { status: 500 });
   }
 }
@@ -78,41 +85,73 @@ export async function PUT(request: NextRequest) {
     await connectToDatabase();
 
     const token = request.cookies.get("token")?.value || "";
+    const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as { id: string };
+    const userId = decodedToken.id;
+
+    const body = await request.json();
+    console.log('Received body:', JSON.stringify(body));
+
+    try {
+      const validatedData = cardUpdateSchema.parse(body);
+      console.log('Validated data:', validatedData);
+
+      const { _id, ...updateData } = validatedData;
+
+      const updatedCard = await Card.findOneAndUpdate(
+        { _id, userId },
+        updateData,
+        { new: true }
+      );
+
+      if (!updatedCard) {
+        return NextResponse.json({ error: "Card not found or you don't have permission to update it" }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        message: "Card updated successfully",
+        success: true,
+        data: updatedCard,
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.error('Zod validation error:', error);
+        const errorMessage = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`).join(', ');
+        return NextResponse.json({ error: errorMessage }, { status: 400 });
+      }
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error in PUT /api/cards:', error);
+    return NextResponse.json({ error: "An error occurred while updating the card" }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    await connectToDatabase();
+
+    const token = request.cookies.get("token")?.value || "";
     const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as JwtPayload;
     const userId = decodedToken.id;
 
-    const updateData = await request.json();
-    const { _id, ...cardData } = updateData;
+    const _id = request.nextUrl.searchParams.get('_id');
 
-    const validatedData = cardSchema.parse(cardData);
+    if (!_id) {
+      return NextResponse.json({ error: "Card ID is required" }, { status: 400 });
+    }
 
-    const normalizedData = {
-      ...validatedData,
-      cardName: validatedData.cardName.toLowerCase(),
-      bankName: validatedData.bankName.toLowerCase(),
-    };
+    const deletedCard = await Card.findOneAndDelete({ _id, userId });
 
-    const updatedCard = await Card.findOneAndUpdate(
-      { _id, userId },
-      normalizedData,
-      { new: true }
-    );
-
-    if (!updatedCard) {
-      return NextResponse.json({ error: "Card not found or you don't have permission to update it" }, { status: 404 });
+    if (!deletedCard) {
+      return NextResponse.json({ error: "Card not found or you don't have permission to delete it" }, { status: 404 });
     }
 
     return NextResponse.json({
-      message: "Card updated successfully",
+      message: "Card deleted successfully",
       success: true,
-      data: updatedCard,
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const errorMessage = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`).join(', ')
-      return NextResponse.json({ error: errorMessage }, { status: 400 });
-    }
-    console.error(error);
-    return NextResponse.json({ error: "An error occurred while updating the card" }, { status: 500 });
+    console.error('Error in DELETE /api/cards:', error);
+    return NextResponse.json({ error: "An error occurred while deleting the card" }, { status: 500 });
   }
 }
