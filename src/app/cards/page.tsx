@@ -129,6 +129,10 @@ export default function CardsPage() {
     }
   }
 
+  const totalOutstanding = cards.reduce((acc, card) => acc + card.outstandingAmount, 0)
+  // const totalCreditLimit = cards.reduce((acc, card) => acc + card.cardLimit, 0)
+  
+
   return (
     <div className="flex flex-col min-h-screen text-white pb-16 md:pb-0 bg-gray-900">
       <header className="shadow-sm bg-gray-800">
@@ -154,16 +158,19 @@ export default function CardsPage() {
       </header>
       <main className="flex-1 overflow-auto px-4 md:px-6 lg:px-8 py-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-end mb-6">
+          <div className="flex justify-between mb-6">
+            <p className="text-md text-gray-400 font-semibold">Total Outstanding: <br />
+              <span className={totalOutstanding > 50000 ? "text-red-500 font-bold" : "text-green-500 font-bold"}>₹{totalOutstanding.toLocaleString()}</span></p>
+            {/* <h2 className="text-md text-gray-400 font-bold">Total Credit Limit: ₹{totalCreditLimit.toLocaleString()}</h2> */}
             <Button className="bg-green-500 hover:bg-green-600" onClick={() => setIsAddCardModalOpen(true)}>Add New Card</Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {cards.map((card) => (
               <div key={card._id} className="flip-card">
                 <div className="flip-card-inner">
-                  <div className="flip-card-front bg-gradient-to-br from-purple-600 to-blue-500 p-6 rounded-lg shadow-lg">
+                  <div className="flip-card-front bg-gradient-to-tr from-dark-200 to-green-900 p-6 rounded-lg shadow-lg">
                     <div className="flex justify-between items-start mb-4">
-                      <div>
+                      <div className="flex flex-col items-start">
                         <h2 className="text-2xl font-bold mb-2">{card.cardName}</h2>
                         <p className="text-sm mb-4">{card.bankName}</p>
                         <p className="text-lg">
