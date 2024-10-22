@@ -47,10 +47,17 @@ export async function POST(request: NextRequest) {
             sameSite: 'strict',
             maxAge: 3600, // 1 hour
         });
+
+        if (user.isAdmin) {
+            response.cookies.set('isAdmin', 'true', {
+                httpOnly: true,
+                path: '/',
+            })
+        }
+
         return response;
         
-    } catch (error) {
-        
+    } catch (error: any) {
         if (error instanceof z.ZodError) {
             return NextResponse.json({ error: error.message }, { status: 500 });
         } else {

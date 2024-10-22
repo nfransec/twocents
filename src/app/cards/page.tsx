@@ -134,8 +134,8 @@ export default function CardsPage() {
   
 
   return (
-    <div className="flex flex-col min-h-screen text-white pb-16 md:pb-0 bg-gray-900">
-      <header className="shadow-sm bg-gray-800">
+    <div className="flex flex-col min-h-screen text-white pb-16 md:pb-0 bg-dark-300">
+      <header className="shadow-sm bg-dark-300">
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <h1 className="text-2xl font-semibold text-white">My Cards</h1>
           <div className="flex items-center">
@@ -168,7 +168,7 @@ export default function CardsPage() {
             {cards.map((card) => (
               <div key={card._id} className="flip-card">
                 <div className="flip-card-inner">
-                  <div className="flip-card-front bg-gradient-to-tr from-dark-200 to-green-900 p-6 rounded-lg shadow-lg">
+                  <div className="flip-card-front bg-gradient-to-tr from-[#09203F] to-[#537895] p-6 rounded-lg shadow-lg">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex flex-col items-start">
                         <h2 className="text-2xl font-bold mb-2">{card.cardName}</h2>
@@ -188,7 +188,7 @@ export default function CardsPage() {
                     <div className="flex justify-between items-end">
                       <div>
                         <p className="text-sm">Outstanding</p>
-                        <p className={card.outstandingAmount > 10000 ? "text-lg font-semibold text-red-800" : "text-lg font-semibold text-green-600"}>₹{card.outstandingAmount.toLocaleString()}</p>
+                        <p className={card.outstandingAmount > 10000 ? "text-lg font-semibold text-red-700" : "text-lg font-semibold text-green-400"}>₹{card.outstandingAmount.toLocaleString()}</p>
                       </div>
                       <div>
                         <p className="text-sm">Billing Date</p>

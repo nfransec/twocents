@@ -52,7 +52,7 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] text-white">
+      <DialogContent className="sm:max-w-[425px] text-white bg-dark-300 rounded-lg">
         <DialogHeader>
           <DialogTitle>Add New Card</DialogTitle>
         </DialogHeader>
@@ -61,7 +61,7 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
             <SelectTrigger>
               <SelectValue placeholder="Select a card" />
             </SelectTrigger>
-            <SelectContent className='text-white'>
+            <SelectContent className='text-white bg-dark-300'>
               {Object.keys(cardToBankMapping).map((cardName) => (
                 <SelectItem key={cardName} value={cardName}>
                   {cardName}

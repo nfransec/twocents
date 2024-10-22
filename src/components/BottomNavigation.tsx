@@ -21,7 +21,7 @@ export default function BottomNavigation() {
     <nav className="fixed bottom-0 left-0 right-0 z-50">
       <div className="mx-auto max-w-md">
         <motion.div 
-          className="flex justify-around items-center bg-gray-900 text-white rounded-t-xl shadow-lg"
+          className="flex justify-around items-center bg-dark-200 text-white rounded-t-xl shadow-lg"
           initial={{ y: 100 }}
           animate={{ y: 0 }}
           transition={{ type: 'spring', stiffness: 260, damping: 20 }}

@@ -4,16 +4,24 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname
 
-    const isPublicPath = path === '/login' || path === '/signup'
+    const isPublicPath = path === '/login' || path === '/signup' || path === '/verifyemail'
 
     const token = request.cookies.get('token')?.value || ''
 
-    if(isPublicPath && token) {
-        return NextResponse.redirect(new URL('/profile', request.nextUrl))
+    if (isPublicPath && token) {
+        return NextResponse.redirect(new URL('/', request.nextUrl))
     }
 
-    if(!isPublicPath && !token) {
+    if (!isPublicPath && !token) {
         return NextResponse.redirect(new URL('/login', request.nextUrl))
+    }
+
+    // Check for admin routes
+    if (path.startsWith('/admin')) {
+        const isAdmin = request.cookies.get('isAdmin')?.value === 'true'
+        if (!isAdmin) {
+            return NextResponse.redirect(new URL('/', request.nextUrl))
+        }
     }
 }
 
@@ -23,10 +31,7 @@ export const config = {
         '/profile',
         '/login',
         '/signup',
-        '/home',
-        '/search',
-        '/cards',
-        '/history',
-        // Add any other routes that should be protected or public here
+        '/verifyemail',
+        '/admin/:path*'
     ]
 }
