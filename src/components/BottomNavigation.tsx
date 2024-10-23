@@ -1,16 +1,16 @@
 'use client'
 
 import React from 'react'
-import { Home, Search, PieChart, Clock, User, CreditCard } from 'lucide-react'
+import { Home, Search, User, CreditCard, LayoutDashboard } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 
 const navItems = [
-  { href: '/home', icon: Home, label: 'Home' },
-  { href: '/search', icon: Search, label: 'Search' },
+  // { href: '/home', icon: Home, label: 'Home' },
   { href: '/cards', icon: CreditCard, label: 'Cards' },
-  // { href: '/history', icon: Clock, label: 'History' },
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/search', icon: Search, label: 'Search' },
   { href: '/profile', icon: User, label: 'Profile' },
 ]
 

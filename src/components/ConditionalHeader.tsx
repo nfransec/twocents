@@ -14,7 +14,10 @@ export default function ConditionalHeader() {
 
   return (
     <header className="p-4 flex justify-between items-center bg-dark-300">
-      <h1 className="text-xl font-bold text-white">TwoCents</h1>
+      <div className='flex items-center gap-2'>
+        <div className='bg-[#bbaaff] w-8 h-8 rounded'></div>
+        <h1 className="text-xl font-bold text-white">TwoCents</h1>
+      </div>
       <LogoutButton />
     </header>
   )
