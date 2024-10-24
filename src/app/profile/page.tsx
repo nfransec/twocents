@@ -51,7 +51,7 @@ export default function ProfilePage() {
       fullName: "",
       email: "",
       username: "",
-      phoneNumber: "",
+      // phoneNumber: "",
     },
   })
 
