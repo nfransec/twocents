@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button"
 import { AddCardModal } from "@/components/AddCardModal"
 import { EditCardModal } from "@/components/EditCardModal"
 import { Bell, Trash2, Pencil } from "lucide-react"
-import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { UserType } from "@/app/profile/page"
+import Image from "next/image"
 
 export interface CardType {
   _id: string;
@@ -18,8 +18,49 @@ export interface CardType {
   cardLimit: number;
   billingDate: string;
   outstandingAmount: number;
-  imageUrl: string;
-  cardNumber?: string; // Add this optional property
+  cardNumber?: string;
+}
+
+const CardDesign = ({ card }: { card: CardType }) => {
+  const getCardStyle = (cardName: string) => {
+    const name = cardName.toLowerCase()
+    if (name.includes('infinia')) return 'bg-gradient-to-tr from-blue-900 via-blue-800 to-blue-500'
+    if (name.includes('amazon')) return 'bg-gradient-to-tr from-red-500 via-yellow-900 to-dark-200'
+    if (name.includes('tata') || name.includes('american express')) return 'bg-gradient-to-r from-green-500 to-teal-500'
+    if (name.includes('play')) return 'bg-gradient-to-r from-orange-500 to-red-500'
+    if (name.includes('simply')) return 'bg-gradient-to-r from-blue-400 to-blue-600'
+    return 'bg-gradient-to-tr from-gray-500 via-teal-600 to-gray-700' // default style
+  }
+
+  const cardStyle = getCardStyle(card.cardName)
+
+  return (
+    <div className={`relative w-full h-60 rounded-lg shadow-lg overflow-hidden ${cardStyle}`}>
+      <div className="absolute inset-0 p-6 flex flex-col justify-between">
+        <div>
+          <h2 className="text-2xl font-bold mb-2 text-white">{card.bankName === 'American Express' ? 'American Express' : card.bankName.split(' ')[0]}</h2>
+          {/* <p className="text-sm mb-4 text-white opacity-80">{card.bankName}</p> */}
+        </div>
+        <div className="flex flex-col items-start gap-4">
+          <div>
+            <p className="text-sm text-white opacity-80">Total Due</p>
+            <p className={`text-lg font-semibold ${card.outstandingAmount > 10000 ? "text-red-900" : "text-green-900"}`}>
+              ₹{card.outstandingAmount.toLocaleString()}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-white opacity-80">Due Date</p>
+            <p className="text-lg font-semibold text-white">{new Date(card.billingDate).getDate()}</p>
+          </div>
+        </div>
+        <div className="absolute bottom-4 right-4">
+          <span className="text-white text-2xl font-bold">
+            {card.cardName.split(' ')[0].toUpperCase()}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function CardsPage() {
@@ -29,6 +70,9 @@ export default function CardsPage() {
   const [cards, setCards] = useState<CardType[]>([])
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false)
   const [editingCard, setEditingCard] = useState<CardType | null>(null)
+  const [selectedCard, setSelectedCard] = useState<CardType | null>(null)
+  const [currentCardIndex, setCurrentCardIndex] = useState(0)
+  const [selectedCardIndex, setSelectedCardIndex] = useState(0)
 
   useEffect(() => {
     fetchCards()
@@ -133,6 +177,26 @@ export default function CardsPage() {
   // const totalCreditLimit = cards.reduce((acc, card) => acc + card.cardLimit, 0)
   
 
+  const handleCardClick = (card: CardType) => {
+    setSelectedCard(card)
+  }
+
+  const handlePrevCard = () => {
+    setCurrentCardIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : cards.length - 1))
+  }
+
+  const handleNextCard = () => {
+    setCurrentCardIndex((prevIndex) => (prevIndex < cards.length - 1 ? prevIndex + 1 : 0))
+  }
+
+  const handleCardScroll = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (event.deltaY > 0) {
+      setSelectedCardIndex((prev) => (prev + 1) % cards.length)
+    } else {
+      setSelectedCardIndex((prev) => (prev - 1 + cards.length) % cards.length)
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen text-white pb-16 md:pb-0 bg-dark-300">
       <header className="shadow-sm bg-dark-300">
@@ -156,7 +220,7 @@ export default function CardsPage() {
           </div>
         </div>
       </header>
-      <main className="flex-1 overflow-auto px-4 md:px-6 lg:px-8 py-8">
+      <main className="flex-1 overflow-hidden px-4 md:px-6 lg:px-8 py-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between mb-6">
             <p className="text-md text-gray-400 font-semibold">Total Outstanding: <br />
@@ -164,54 +228,62 @@ export default function CardsPage() {
             {/* <h2 className="text-md text-gray-400 font-bold">Total Credit Limit: ₹{totalCreditLimit.toLocaleString()}</h2> */}
             <Button className="bg-green-500 hover:bg-green-600" onClick={() => setIsAddCardModalOpen(true)}>Add New Card</Button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          
+          {/* Desktop view */}
+          <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {cards.map((card) => (
-              <div key={card._id} className="flip-card">
-                <div className="flip-card-inner">
-                  <div className="flip-card-front bg-gradient-to-tr from-[#09203F] to-[#537895] p-6 rounded-lg shadow-lg">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex flex-col items-start">
-                        <h2 className="text-2xl font-bold mb-2">{card.cardName}</h2>
-                        <p className="text-sm mb-4">{card.bankName}</p>
-                        <p className="text-lg">
-                          •••• •••• •••• {card.cardNumber ? card.cardNumber.slice(-4) : 'XXXX'}
-                        </p>
-                      </div>
-                      {/* <Image
-                        src={card.imageUrl || '/default-card-image.png'}
-                        alt={card.cardName}
-                        width={60}
-                        height={40}
-                        className="rounded"
-                      /> */}
-                    </div>
-                    <div className="flex justify-between items-end">
-                      <div>
-                        <p className="text-sm">Outstanding</p>
-                        <p className={card.outstandingAmount > 10000 ? "text-lg font-semibold text-red-700" : "text-lg font-semibold text-green-400"}>₹{card.outstandingAmount.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm">Billing Date</p>
-                        <p className="text-lg font-semibold">{new Date(card.billingDate).getDate()}</p>
-                      </div>
-                    </div>
+              <CardDesign key={card._id} card={card} />
+            ))}
+          </div>
+
+          {/* Mobile view */}
+          <div className="md:hidden">
+            <div 
+              className="relative h-80 overflow-hidden"
+              onWheel={handleCardScroll}
+            >
+              {cards.map((card, index) => {
+                const distance = index - selectedCardIndex;
+                const absoluteDistance = Math.abs(distance);
+                const isBeforeSelected = distance < 0;
+
+                return (
+                  <div
+                    key={card._id}
+                    className={`absolute w-full transition-all duration-300 ease-in-out`}
+                    style={{
+                      transform: `
+                        translateY(${distance * 30}%)
+                        scale(${1 - absoluteDistance * 0.1})
+                        translateZ(${isBeforeSelected ? '-' : ''}${absoluteDistance * 10}px)
+                      `,
+                      opacity: 1 - absoluteDistance * 0.2,
+                      zIndex: cards.length - absoluteDistance,
+                    }}
+                  >
+                    <CardDesign card={card} />
                   </div>
-                  <div className="flip-card-back bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 className="text-xl font-bold mb-4">Card Details</h3>
-                    <p className="mb-2">Credit Limit: ₹{card.cardLimit.toLocaleString()}</p>
-                    <p className="mb-4">Billing Date: {new Date(card.billingDate).toLocaleDateString()}</p>
-                    <div className="flex justify-end mt-4 space-x-2">
-                      <Button onClick={() => handleEditCard(card)} size="sm" className="bg-blue-500 hover:bg-blue-600">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button onClick={() => handleDeleteCard(card._id)} size="sm" className="bg-red-500 hover:bg-red-600">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                );
+              })}
+            </div>
+
+            {cards[selectedCardIndex] && (
+              <div className="mt-8 bg-gray-900 p-6 rounded-lg shadow-lg">
+                <h3 className="text-xl font-bold mb-4">{cards[selectedCardIndex].cardName}</h3>
+                <p className="mb-2">Bank: {cards[selectedCardIndex].bankName}</p>
+                <p className="mb-2">Credit Limit: ₹{cards[selectedCardIndex].cardLimit.toLocaleString()}</p>
+                <p className="mb-2">Outstanding: ₹{cards[selectedCardIndex].outstandingAmount.toLocaleString()}</p>
+                <p className="mb-4">Billing Date: {new Date(cards[selectedCardIndex].billingDate).toLocaleDateString()}</p>
+                <div className="flex justify-end mt-4 space-x-2">
+                  <Button onClick={() => handleEditCard(cards[selectedCardIndex])} size="sm" className="bg-blue-500 hover:bg-blue-600">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button onClick={() => handleDeleteCard(cards[selectedCardIndex]._id)} size="sm" className="bg-red-500 hover:bg-red-600">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </main>

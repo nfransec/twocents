@@ -35,7 +35,7 @@ export interface UserType {
 const userFormSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }),
-  phoneNumber: z.string().min(10, { message: "Please enter a valid phone number." }),
+  // phoneNumber: z.string().min(10, { message: "Please enter a valid phone number." }),
   username: z.string().min(2, { message: "Username must be at least 2 characters." }),
 })
 
@@ -64,7 +64,7 @@ export default function ProfilePage() {
       userForm.reset({
         fullName: userData?.fullName ?? "",
         email: userData?.email ?? "",
-        phoneNumber: userData?.phoneNumber ?? "",
+        //phoneNumber: userData?.phoneNumber ?? "",
         username: userData?.username ?? "",
       })
     } catch (error) {
@@ -191,12 +191,12 @@ export default function ProfilePage() {
                           iconAlt="email"
                       />
         
-                      <CustomFormField
+                      {/* <CustomFormField
                           fieldType={FormFieldType.PHONE_INPUT}
                           control={userForm.control}
                           name="phoneNumber"
                           placeholder="(555) 123-4567"
-                      />
+                      /> */}
                     
                       <div className="flex flex-row space-x-4 mt-6 justify-between">
                         <Button type="submit" className="w-full bg-green-500" disabled={isLoading}>
