@@ -103,7 +103,7 @@ export default function DashboardPage() {
       <header className="flex flex-row justify-between items-center mb-6 gap-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-[#00ffbd] rounded-full"></div>
-          <span className="text-xl font-bold">{user?.fullName.split(' ')[0]}'s Dashboard</span>
+          <span className="text-xl font-bold">{user?.fullName.split(' ')[0]} <span className='text-green-300'>|</span> Dashboard</span>
         </div>
         {/* <nav className="flex gap-2 sm:gap-4 overflow-x-auto w-full sm:w-auto">
           <NavItem icon={<Home size={18} />} label="Home" active />
