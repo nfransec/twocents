@@ -122,7 +122,7 @@ export default function ProfilePage() {
   return (
     <div className="flex flex-col min-h-screen text-white pb-16 md:pb-0">
       <div className="flex-1 overflow-auto px-4 md:px-6 lg:px-8">
-        <header className="shadow-sm">
+        {/* <header className="shadow-sm">
           <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
             <h1 className="text-2xl font-semibold text-white mt-4">{user?.fullName?.split(' ')[0]}&#39;s dashboard</h1>
             <div className="flex items-center">
@@ -139,7 +139,7 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-        </header>
+        </header> */}
 
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">

@@ -41,7 +41,7 @@ export function EditCardModal({ isOpen, onClose, onEditCard, card }: EditCardMod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] text-white">
+      <DialogContent className="max-w-[395px] text-white">
         <DialogHeader>
           <DialogTitle>Edit Card</DialogTitle>
         </DialogHeader>

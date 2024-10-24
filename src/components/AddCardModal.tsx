@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CardType } from '@/app/cards/page';
 import { cardToBankMapping, CardName } from '@/utils/cardMappings';
+import CustomFormField from './CustomFormField';
+import { FormFieldType } from './forms/UserForm';
 
 interface AddCardModalProps {
   isOpen: boolean;
@@ -19,7 +21,7 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
     cardLimit: 0,
     billingDate: '',
     outstandingAmount: 0,
-    imageUrl: '',
+    // imageUrl: '',
     cardNumber: ''
   });
 
@@ -52,7 +54,7 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] text-white bg-dark-300 rounded-lg">
+      <DialogContent className="max-w-[395px] text-white bg-dark-300 rounded-lg">
         <DialogHeader>
           <DialogTitle>Add New Card</DialogTitle>
         </DialogHeader>
@@ -106,7 +108,8 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
             placeholder="Card Number (optional)"
             maxLength={16}
           />
-          <Button type="submit" className='bg-green-500 hover:bg-green-700 w-full'>Add Card</Button>
+
+          <Button type="submit" className='bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 outline-none w-full'>Add Card</Button>
         </form>
       </DialogContent>
     </Dialog>

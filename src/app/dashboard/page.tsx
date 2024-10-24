@@ -21,6 +21,16 @@ export interface UserType {
     profilePicture: string
 }
 
+export interface CardType {
+  _id: string;
+  cardName: string;
+  bankName: string;
+  cardLimit: number;
+  billingDate: string;
+  outstandingAmount: number;
+  cardNumber?: string;
+}
+
 const TransactionItem = ({ icon, name, date, time, amount }: { icon: React.ReactNode, name: string, date: string, time: string, amount: string}) => (
   <div className="flex items-center justify-between py-2">
     <div className="flex items-center gap-3">
@@ -38,6 +48,7 @@ const TransactionItem = ({ icon, name, date, time, amount }: { icon: React.React
 
 export default function DashboardPage() {
     const [user, setUser] = useState<UserType | null>(null)
+    const [cards, setCards] = useState<CardType[] >([])
     const [isLoading, setIsLoading] = useState(true)
     const router = useRouter()
 
@@ -53,6 +64,16 @@ export default function DashboardPage() {
             setIsLoading(false)
         }
     }, [])
+
+    const fetchCards = async () => {
+      try {
+        const response = await axios.get('/api/cards')
+        setCards(response.data.data)
+      } catch (error) {
+        console.error('Error fetching cards:', error)
+        toast.error('Failed to fetch cards')
+      }
+    }
 
     const handleError = (error: unknown) => {
         if (axios.isAxiosError(error)) {
@@ -71,7 +92,10 @@ export default function DashboardPage() {
     
       useEffect(() => {
         fetchUser()
+        fetchCards()
       }, [])
+
+  const totalDue = cards.reduce((acc, card) => acc + card.outstandingAmount, 0);
 
   return (
     <div className="bg-[#1c1c28] text-white p-4 sm:p-6 rounded-3xl max-w-6xl mx-auto">
@@ -79,7 +103,7 @@ export default function DashboardPage() {
       <header className="flex flex-row justify-between items-center mb-6 gap-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-[#00ffbd] rounded-full"></div>
-          <span className="text-xl font-bold">Dashboard</span>
+          <span className="text-xl font-bold">{user?.fullName.split(' ')[0]}'s Dashboard</span>
         </div>
         {/* <nav className="flex gap-2 sm:gap-4 overflow-x-auto w-full sm:w-auto">
           <NavItem icon={<Home size={18} />} label="Home" active />
@@ -105,9 +129,9 @@ export default function DashboardPage() {
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-semibold">Total Due</h2>
-                <p className="text-2xl sm:text-4xl font-bold">₹228,621.97</p>
+                <p className="text-2xl sm:text-4xl font-bold">₹ {totalDue.toLocaleString()}</p>
               </div>
-              <Button className="bg-white text-black text-sm sm:text-base">+ ₹2000</Button>
+              <Button className="bg-white text-black text-sm sm:text-base">2%</Button>
             </div>
             <div className="h-24 sm:h-32 bg-[#d5d350] rounded-xl mb-4">
                 <div className='bg-dark-200 w-1/4 h-full rounded-l-xl'></div>
@@ -135,7 +159,7 @@ export default function DashboardPage() {
               </div>
               <div className="bg-[#252836] rounded-3xl p-4 sm:p-6">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-[#ff5c5c] text-xl sm:text-2xl font-bold">-₹ 228,621.97</span>
+                  <span className="text-[#ff5c5c] text-xl sm:text-2xl font-bold">-₹ {totalDue.toLocaleString()}</span>
                   <Button size="sm" className="bg-[#2f3142]">+17%</Button>
                 </div>
                 <p className="text-gray-400 text-sm sm:text-base">Spent this month</p>
@@ -143,7 +167,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-        <div className="bg-[#252836] rounded-3xl p-4 sm:p-6">
+        {/* <div className="bg-[#252836] rounded-3xl p-4 sm:p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg sm:text-xl font-bold">Budget</h2>
             <Button variant="ghost" className="text-gray-400 text-sm sm:text-base">
@@ -165,7 +189,7 @@ export default function DashboardPage() {
             <span className="flex items-center gap-2"><span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-300"></span> Spent</span>
             <span className="flex items-center gap-2"><span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-purple-500"></span> Savings</span>
           </div>
-        </div>
+        </div> */}
       </main>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
@@ -205,7 +229,7 @@ export default function DashboardPage() {
             amount="- ₹199.00"
           />
         </div>
-        <div className="bg-white rounded-3xl p-4 sm:p-6 text-black">
+        {/* <div className="bg-white rounded-3xl p-4 sm:p-6 text-black">
           <div className="bg-[#e9e75a] rounded-2xl p-4 mb-4">
             <div className="flex justify-between items-start mb-6 sm:mb-8">
               <span className="text-xs sm:text-sm">HDFC Bank</span>
@@ -222,8 +246,8 @@ export default function DashboardPage() {
           <Button className="w-full bg-black text-white flex items-center justify-center gap-2 text-sm sm:text-base">
             <Plus size={16} /> Add new card
           </Button>
-        </div>
-        <div className="bg-white rounded-3xl p-4 sm:p-6 text-black">
+        </div> */}
+        {/* <div className="bg-white rounded-3xl p-4 sm:p-6 text-black">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg sm:text-xl font-bold">Top spending</h2>
             <Button variant="link" className="text-black text-sm sm:text-base">
@@ -256,7 +280,7 @@ export default function DashboardPage() {
               <Button variant="outline" size="sm">₹4,999.00</Button>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   )

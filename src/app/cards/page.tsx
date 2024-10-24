@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { AddCardModal } from "@/components/AddCardModal"
 import { EditCardModal } from "@/components/EditCardModal"
-import { Bell, Trash2, Pencil } from "lucide-react"
+import { Bell, Trash2, Pencil, ChevronRight, ChevronLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { UserType } from "@/app/profile/page"
 import Image from "next/image"
@@ -21,42 +21,65 @@ export interface CardType {
   cardNumber?: string;
 }
 
-const CardDesign = ({ card }: { card: CardType }) => {
+const CardDesign = ({ card, isFlipped, onClick }: { card: CardType; isFlipped: boolean; onClick: () => void }) => {
   const getCardStyle = (cardName: string) => {
     const name = cardName.toLowerCase()
     if (name.includes('infinia')) return 'bg-gradient-to-tr from-blue-900 via-blue-800 to-blue-500'
     if (name.includes('amazon')) return 'bg-gradient-to-tr from-red-500 via-yellow-900 to-dark-200'
     if (name.includes('tata') || name.includes('american express')) return 'bg-gradient-to-r from-green-500 to-teal-500'
     if (name.includes('play')) return 'bg-gradient-to-r from-orange-500 to-red-500'
-    if (name.includes('simply')) return 'bg-gradient-to-r from-blue-400 to-blue-600'
+    if (name.includes('ixigo')) return 'bg-gradient-to-tr from-rose-400 to-red-500'
+    if (name.includes('power')) return 'bg-gradient-to-br from-slate-500 via-slate-600 to-slate-800'
     return 'bg-gradient-to-tr from-gray-500 via-teal-600 to-gray-700' // default style
   }
 
   const cardStyle = getCardStyle(card.cardName)
 
   return (
-    <div className={`relative w-full h-60 rounded-lg shadow-lg overflow-hidden ${cardStyle}`}>
-      <div className="absolute inset-0 p-6 flex flex-col justify-between">
-        <div>
-          <h2 className="text-2xl font-bold mb-2 text-white">{card.bankName === 'American Express' ? 'American Express' : card.bankName.split(' ')[0]}</h2>
-          {/* <p className="text-sm mb-4 text-white opacity-80">{card.bankName}</p> */}
-        </div>
-        <div className="flex flex-col items-start gap-4">
-          <div>
-            <p className="text-sm text-white opacity-80">Total Due</p>
-            <p className={`text-lg font-semibold ${card.outstandingAmount > 10000 ? "text-red-900" : "text-green-900"}`}>
-              ₹{card.outstandingAmount.toLocaleString()}
-            </p>
+    <div className="relative w-full h-60 perspective" onClick={onClick}>
+      <div className={`w-full h-full transition-transform duration-500 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
+        {/* Front of the card */}
+        <div className={`absolute w-full h-full rounded-lg shadow-lg overflow-hidden ${cardStyle} backface-hidden`}>
+          <div className="absolute inset-0 p-6 flex flex-col justify-between">
+            <div>
+              <h2 className="text-2xl font-bold mb-2 text-white">{card.bankName === 'American Express' ? 'American Express' : card.bankName.split(' ')[0]}</h2>
+              {/* <p className="text-sm mb-4 text-white opacity-80">{card.bankName}</p> */}
+            </div>
+            <div className="flex flex-col items-start gap-4">
+              <div>
+                <p className="text-sm text-white opacity-80">Total Due</p>
+                <p className={`text-lg font-semibold ${card.outstandingAmount > 10000 ? "text-red-900" : "text-green-900"}`}>
+                  ₹{card.outstandingAmount.toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-white opacity-80">Due Date</p>
+                <p className="text-lg font-semibold text-white">{new Date(card.billingDate).getDate()}</p>
+              </div>
+            </div>
+            <div className="absolute bottom-4 right-4">
+              <span className="text-white text-2xl font-bold">
+                {card.cardName.split(' ')[0].toUpperCase()}
+              </span>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-white opacity-80">Due Date</p>
-            <p className="text-lg font-semibold text-white">{new Date(card.billingDate).getDate()}</p>
-          </div>
         </div>
-        <div className="absolute bottom-4 right-4">
-          <span className="text-white text-2xl font-bold">
-            {card.cardName.split(' ')[0].toUpperCase()}
-          </span>
+        
+        {/* Back of the card */}
+        <div className="absolute w-full h-full rounded-lg shadow-lg overflow-hidden bg-gray-800 p-6 backface-hidden rotate-y-180">
+          <h3 className="text-xl font-bold mb-4">{card.cardName} Details</h3>
+          <p className="mb-2">Bank: {card.bankName}</p>
+          <p className="mb-2">Credit Limit: ₹{card.cardLimit.toLocaleString()}</p>
+          <p className="mb-2">Outstanding: ₹{card.outstandingAmount.toLocaleString()}</p>
+          <p className="mb-4">Billing Date: {new Date(card.billingDate).toLocaleDateString()}</p>
+          <div className="flex justify-end mt-4 space-x-2">
+            <Button onClick={(e) => { e.stopPropagation(); /* handleEditCard(card) */ }} size="sm" className="bg-blue-500 hover:bg-blue-600">
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button onClick={(e) => { e.stopPropagation(); /* handleDeleteCard(card._id) */ }} size="sm" className="bg-red-500 hover:bg-red-600">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -73,6 +96,7 @@ export default function CardsPage() {
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null)
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [selectedCardIndex, setSelectedCardIndex] = useState(0)
+  const [flippedCards, setFlippedCards] = useState<{ [key: string]: boolean }>({})
 
   useEffect(() => {
     fetchCards()
@@ -197,9 +221,13 @@ export default function CardsPage() {
     }
   }
 
+  const handleCardFlip = (cardId: string) => {
+    setFlippedCards(prev => ({ ...prev, [cardId]: !prev[cardId] }))
+  }
+
   return (
     <div className="flex flex-col min-h-screen text-white pb-16 md:pb-0 bg-dark-300">
-      <header className="shadow-sm bg-dark-300">
+      {/* <header className="shadow-sm bg-dark-300">
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <h1 className="text-2xl font-semibold text-white">My Cards</h1>
           <div className="flex items-center">
@@ -219,20 +247,20 @@ export default function CardsPage() {
             </div>
           </div>
         </div>
-      </header>
+      </header> */}
       <main className="flex-1 overflow-hidden px-4 md:px-6 lg:px-8 py-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between mb-6">
-            <p className="text-md text-gray-400 font-semibold">Total Outstanding: <br />
-              <span className={totalOutstanding > 50000 ? "text-red-500 font-bold" : "text-green-500 font-bold"}>₹{totalOutstanding.toLocaleString()}</span></p>
+          <div className="flex justify-between items-center mb-8">
+            <p className="text-md text-gray-400 font-semibold">Total Due: <br />
+              <span className={totalOutstanding > 50000 ? "text-red-500 font-bold text-2xl" : "text-green-500 font-bold"}>₹{totalOutstanding.toLocaleString()}</span></p>
             {/* <h2 className="text-md text-gray-400 font-bold">Total Credit Limit: ₹{totalCreditLimit.toLocaleString()}</h2> */}
-            <Button className="bg-green-500 hover:bg-green-600" onClick={() => setIsAddCardModalOpen(true)}>Add New Card</Button>
+            <Button className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 outline-none" onClick={() => setIsAddCardModalOpen(true)}>Add New Card</Button>
           </div>
           
           {/* Desktop view */}
           <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {cards.map((card) => (
-              <CardDesign key={card._id} card={card} />
+              <CardDesign key={card._id} card={card} isFlipped={flippedCards[card._id]} onClick={() => handleCardFlip(card._id)} />
             ))}
           </div>
 
@@ -250,7 +278,7 @@ export default function CardsPage() {
                 return (
                   <div
                     key={card._id}
-                    className={`absolute w-full transition-all duration-300 ease-in-out`}
+                    className={`absolute w-full transition-all duration-300 ease-in-out mt-10`}
                     style={{
                       transform: `
                         translateY(${distance * 30}%)
@@ -261,24 +289,30 @@ export default function CardsPage() {
                       zIndex: cards.length - absoluteDistance,
                     }}
                   >
-                    <CardDesign card={card} />
+                    <CardDesign card={card} isFlipped={false} onClick={() => handleCardClick(card)} />
                   </div>
                 );
               })}
             </div>
 
+            <div className='grid grid-cols-2 justify-center items-center gap-4 mt-16 mb-12 mx-2'>
+              <Button className='bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 outline-none'>Pay Now</Button>
+              <Button className='border-green-500 text-green-500 outline hover:outline-none hover:bg-gradient-to-r hover:from-green-600 hover:to-teal-600 hover:text-white'>Mark as Paid</Button>
+            </div>
+
             {cards[selectedCardIndex] && (
-              <div className="mt-8 bg-gray-900 p-6 rounded-lg shadow-lg">
-                <h3 className="text-xl font-bold mb-4">{cards[selectedCardIndex].cardName}</h3>
-                <p className="mb-2">Bank: {cards[selectedCardIndex].bankName}</p>
-                <p className="mb-2">Credit Limit: ₹{cards[selectedCardIndex].cardLimit.toLocaleString()}</p>
-                <p className="mb-2">Outstanding: ₹{cards[selectedCardIndex].outstandingAmount.toLocaleString()}</p>
-                <p className="mb-4">Billing Date: {new Date(cards[selectedCardIndex].billingDate).toLocaleDateString()}</p>
+              <div className="mt-8 bg-dark-200 p-6 rounded-3xl shadow-xl">
+                <h3 className="text-xl font-bold mb-2">{cards[selectedCardIndex].cardName}</h3>
+                <div className='bg-gradient-to-r from-green-400 to-green-700 w-full h-1 rounded-lg mb-6'></div>
+                <p className="mb-2">Bank: <span className="font-bold text-green-500">{cards[selectedCardIndex].bankName}</span></p>
+                <p className="mb-2">Credit Limit: <span className="font-bold text-green-500">₹{cards[selectedCardIndex].cardLimit.toLocaleString()}</span></p>
+                <p className="mb-2">Total Due: <span className={cards[selectedCardIndex].outstandingAmount > 10000 ? "text-red-500 font-bold" : "text-green-500 font-bold"}>₹{cards[selectedCardIndex].outstandingAmount.toLocaleString()}</span></p>
+                <p className="mb-4">Billing Date: <span className="font-bold text-green-500">{new Date(cards[selectedCardIndex].billingDate).toLocaleDateString()}</span></p>
                 <div className="flex justify-end mt-4 space-x-2">
-                  <Button onClick={() => handleEditCard(cards[selectedCardIndex])} size="sm" className="bg-blue-500 hover:bg-blue-600">
+                  <Button onClick={() => handleEditCard(cards[selectedCardIndex])} size="sm" className="bg-green-500 hover:bg-blue-600">
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button onClick={() => handleDeleteCard(cards[selectedCardIndex]._id)} size="sm" className="bg-red-500 hover:bg-red-600">
+                  <Button onClick={() => handleDeleteCard(cards[selectedCardIndex]._id)} size="sm" className="bg-red-400 hover:bg-red-600">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
