@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { AddCardModal } from "@/components/AddCardModal"
 import { EditCardModal } from "@/components/EditCardModal"
-import { Bell, Trash2, Pencil, ChevronRight, ChevronLeft } from "lucide-react"
+import { Bell, Trash2, Pencil, ChevronRight, ChevronLeft, ChevronUp, ChevronDown } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { UserType } from "@/app/profile/page"
 import Image from "next/image"
@@ -21,15 +21,18 @@ export interface CardType {
   cardNumber?: string;
 }
 
-const CardDesign = ({ card, isFlipped, onClick }: { card: CardType; isFlipped: boolean; onClick: () => void }) => {
+const CardDesign = ({ card, isFlipped, onClick, onEdit, onDelete }: { card: CardType; isFlipped: boolean; onClick: () => void; onEdit: (card: CardType) => void; onDelete: (cardId: string) => void }) => {
   const getCardStyle = (cardName: string) => {
     const name = cardName.toLowerCase()
     if (name.includes('infinia')) return 'bg-gradient-to-tr from-blue-900 via-blue-800 to-blue-500'
-    if (name.includes('amazon')) return 'bg-gradient-to-tr from-red-500 via-yellow-900 to-dark-200'
-    if (name.includes('tata') || name.includes('american express')) return 'bg-gradient-to-r from-green-500 to-teal-500'
-    if (name.includes('play')) return 'bg-gradient-to-r from-orange-500 to-red-500'
+    if (name.includes('amazon')) return 'bg-gradient-to-tr from-red-500 to-yellow-900'
+    if (name.includes('tata')) return 'bg-gradient-to-br from-purple-800 via-purple-900 to-teal-500'
+    if (name.includes('play')) return 'bg-gradient-to-tr from-orange-300 via-orange-500 to-red-500'
     if (name.includes('ixigo')) return 'bg-gradient-to-tr from-rose-400 to-red-500'
     if (name.includes('power')) return 'bg-gradient-to-br from-slate-500 via-slate-600 to-slate-800'
+    if (name.includes('platinum') && name.includes('travel')) return 'bg-gradient-to-br from-gray-400 via-dark-700 to-dark-500'
+    if (name.includes('simply')) return 'bg-gradient-to-br from-emerald-400 via-emerald-500 to-green-700'
+    if (name.includes('gold') || name.includes('mrcc')) return 'bg-gradient-to-tr from-yellow-400 via-yellow-500 to-yellow-700'
     return 'bg-gradient-to-tr from-gray-500 via-teal-600 to-gray-700' // default style
   }
 
@@ -73,10 +76,10 @@ const CardDesign = ({ card, isFlipped, onClick }: { card: CardType; isFlipped: b
           <p className="mb-2">Outstanding: ₹{card.outstandingAmount.toLocaleString()}</p>
           <p className="mb-4">Billing Date: {new Date(card.billingDate).toLocaleDateString()}</p>
           <div className="flex justify-end mt-4 space-x-2">
-            <Button onClick={(e) => { e.stopPropagation(); /* handleEditCard(card) */ }} size="sm" className="bg-blue-500 hover:bg-blue-600">
+            <Button onClick={(e) => { e.stopPropagation(); onEdit(card) }} size="sm" className="bg-blue-500 hover:bg-blue-600">
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button onClick={(e) => { e.stopPropagation(); /* handleDeleteCard(card._id) */ }} size="sm" className="bg-red-500 hover:bg-red-600">
+            <Button onClick={(e) => { e.stopPropagation(); onDelete(card._id) }} size="sm" className="bg-red-500 hover:bg-red-600">
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
@@ -206,11 +209,11 @@ export default function CardsPage() {
   }
 
   const handlePrevCard = () => {
-    setCurrentCardIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : cards.length - 1))
+    setSelectedCardIndex((prev) => (prev - 1 + cards.length) % cards.length)
   }
 
   const handleNextCard = () => {
-    setCurrentCardIndex((prevIndex) => (prevIndex < cards.length - 1 ? prevIndex + 1 : 0))
+    setSelectedCardIndex((prev) => (prev + 1) % cards.length)
   }
 
   const handleCardScroll = (event: React.WheelEvent<HTMLDivElement>) => {
@@ -260,7 +263,14 @@ export default function CardsPage() {
           {/* Desktop view */}
           <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {cards.map((card) => (
-              <CardDesign key={card._id} card={card} isFlipped={flippedCards[card._id]} onClick={() => handleCardFlip(card._id)} />
+              <CardDesign 
+                key={card._id} 
+                card={card} 
+                isFlipped={flippedCards[card._id]} 
+                onClick={() => handleCardFlip(card._id)}
+                onEdit={handleEditCard}
+                onDelete={handleDeleteCard}
+              />
             ))}
           </div>
 
@@ -278,7 +288,7 @@ export default function CardsPage() {
                 return (
                   <div
                     key={card._id}
-                    className={`absolute w-full transition-all duration-300 ease-in-out mt-10`}
+                    className={`absolute w-full transition-all duration-500 ease-in-out mt-10`}
                     style={{
                       transform: `
                         translateY(${distance * 30}%)
@@ -293,11 +303,21 @@ export default function CardsPage() {
                   </div>
                 );
               })}
+            </div> 
+
+            {/* Add chevron controls */}
+            <div className="flex justify-center mt-10 space-x-4">
+              <Button onClick={handlePrevCard} className="p-4 bg-dark-200 rounded-full">
+                <ChevronUp className="h-6 w-6 text-green-500" />
+              </Button>
+              <Button onClick={handleNextCard} className="p-4 bg-dark-200 rounded-full">
+                <ChevronDown className="h-6 w-6 text-green-500" />
+              </Button>
             </div>
 
-            <div className='grid grid-cols-2 justify-center items-center gap-4 mt-16 mb-12 mx-2'>
-              <Button className='bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 outline-none'>Pay Now</Button>
-              <Button className='border-green-500 text-green-500 outline hover:outline-none hover:bg-gradient-to-r hover:from-green-600 hover:to-teal-600 hover:text-white'>Mark as Paid</Button>
+            <div className='grid grid-cols-2 justify-center items-center gap-4 mt-10 mb-12 mx-2'>
+              <Button className='bg-gradient-to-r from-green-500 to-teal-500 hover:from-red-500 hover:to-orange-500 outline-none'>Pay Now</Button>
+              <Button className='border-green-500 text-green-500 outline hover:outline-none hover:bg-gradient-to-r hover:from-red-500 hover:to-orange-500 hover:text-white'>Mark as Paid</Button>
             </div>
 
             {cards[selectedCardIndex] && (

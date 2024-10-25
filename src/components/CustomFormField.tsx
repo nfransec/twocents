@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectValue } from './ui/select'
 import { SelectTrigger } from '@radix-ui/react-select'
 import { Button } from './ui/button'
 import { Eye, EyeOff } from 'lucide-react'
+import { Checkbox } from './ui/checkbox'
 
 type E164Number = string;
 
@@ -147,6 +148,21 @@ const RenderField = ({ field, props }: { field: any; props: CustomProps }) => {
             )
         case FormFieldType.SKELETON:
             return props.renderSkeleton ? props.renderSkeleton(field) : null
+        case FormFieldType.CHECKBOX:
+            return (
+                <FormControl>
+                    <div className='flex items-center gap-4'>
+                        <Checkbox
+                            id={props.name}
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                        />
+                        <label htmlFor={props.name} className='checkbox-label'>
+                            {props.label}
+                        </label>
+                    </div>
+                </FormControl>
+            );
         case FormFieldType.SELECT:
             return (
                 <div className='flex rounded-md border border-dark-500 bg-dark-400 w-fit'>

@@ -7,13 +7,9 @@ export const UserFormDefaultValues = {
   email: "",
   phone: "",
   gender: "Male" as Gender,
-  address: "",
-  occupation: "",
-  primaryCard: "",
-  identificationType: "Birth Certificate",
-  identificationNumber: "",
-  identificationDocument: [],
+  bankStatement: [],
   privacyConsent: false,
+  acknowledgementConsent: false,
 };
 
 export const IdentificationTypes = [

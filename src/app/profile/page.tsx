@@ -20,6 +20,9 @@ import CustomSidebar from "@/components/customSidebar"
 import CustomFormField from "@/components/CustomFormField"
 import { FormFieldType } from "@/components/forms/UserForm"
 import BottomNavigation from "@/components/BottomNavigation"
+import FileUploader from "@/components/FileUploader"
+import { UserFormDefaultValues } from "../../../constants"
+
 
 
 export interface UserType {
@@ -35,9 +38,18 @@ export interface UserType {
 const userFormSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }),
-  // phoneNumber: z.string().min(10, { message: "Please enter a valid phone number." }),
+  phoneNumber: z.string().min(10, { message: "Please enter a valid phone number." }).optional(),
   username: z.string().min(2, { message: "Username must be at least 2 characters." }),
-})
+  bankStatement: z.custom<File[]>().optional(),
+  privacyConsent: z
+    .boolean()
+    .default(false)
+    .refine((value) => value === true, { message: 'You must agree to the privacy policy to proceed.'}),
+  acknowledgementConsent: z
+    .boolean()
+    .default(false)
+    .refine((value) => value === true, { message: 'You must agree to the acknowledgement policy to proceed.'}),
+});
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -48,10 +60,11 @@ export default function ProfilePage() {
   const userForm = useForm<z.infer<typeof userFormSchema>>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
+      ...UserFormDefaultValues,
       fullName: "",
       email: "",
       username: "",
-      // phoneNumber: "",
+      phoneNumber: "",
     },
   })
 
@@ -66,6 +79,8 @@ export default function ProfilePage() {
         email: userData?.email ?? "",
         //phoneNumber: userData?.phoneNumber ?? "",
         username: userData?.username ?? "",
+        privacyConsent: false,
+        acknowledgementConsent: false,
       })
     } catch (error) {
       handleError(error)
@@ -145,9 +160,9 @@ export default function ProfilePage() {
           <div className="px-4 py-6 sm:px-0">
             <div className="flex flex-col md:flex-row gap-6">
               {/* Profile Card */}
-              <Card className="flex-1">
+              <Card className="flex-1 border-green-500">
                 <CardHeader>
-                  <CardTitle>My profile</CardTitle>
+                  <CardTitle>My profile <span className='text-green-300'>|</span> {user?.fullName.split(' ')[0]}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col items-center mb-6">
@@ -158,7 +173,6 @@ export default function ProfilePage() {
                       height={200}
                       className="rounded-full mb-4"
                     />
-                    <p className="text-sm text-gray-500">Last login: 07 Aug 2021 14:04</p>
                   </div>
                   <Form {...userForm}>
                     <form onSubmit={userForm.handleSubmit(onSubmitUserForm)} className="space-y-4">
@@ -198,26 +212,60 @@ export default function ProfilePage() {
                           placeholder="(555) 123-4567"
                       /> */}
                     
-                      <div className="flex flex-row space-x-4 mt-6 justify-between">
-                        <Button type="submit" className="w-full bg-green-500" disabled={isLoading}>
-                          {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
-                          Update profile
-                        </Button>
-                        <Button
-                          type="button"
-                          className="w-full bg-red-500 text-white"
-                          onClick={logout}
-                          disabled={isLoading}
-                        >
-                          {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
-                          Logout
-                        </Button>
+                      
+                      <div className="mt-10">
+                        <CustomFormField
+                          fieldType={FormFieldType.SKELETON}
+                          control={userForm.control}
+                          name='bankStatement'
+                          label='Upload Your Bank Statement'
+                          renderSkeleton={(field) => (
+                            <FormControl>
+                              <FileUploader files={field.value} onChange={field.onChange} />
+                            </FormControl>
+                          )}
+                        />
+
+                        <section className='mt-4 space-y-6'>
+                          <div className='mb-9 space-y-1 flex flex-col gap-4'>
+                            <h2 className='text-14-bold'>Consent and Privacy</h2>
+                            <CustomFormField
+                              fieldType={FormFieldType.CHECKBOX}
+                              control={userForm.control}
+                              name='privacyConsent'
+                              label='I agree to the terms and conditions and consent to the processing of my personal data in accordance with the Privacy Policy.'
+                            />
+
+                            <CustomFormField 
+                              fieldType={FormFieldType.CHECKBOX}
+                              control={userForm.control}
+                              name='acknowledgementConsent'
+                              label='I acknowledge that I have read and understood the above consent and privacy policy.'
+                            />
+                          </div>
+                        </section>
+
+                        <div className="flex flex-row space-x-4 mt-6 justify-between">
+                          <Button type="submit" className="w-full bg-green-500" disabled={isLoading}>
+                            {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
+                            Save and Continue
+                          </Button>
+                          {/* <Button
+                            type="button"
+                            className="w-full bg-red-500 text-white"
+                            onClick={logout}
+                            disabled={isLoading}
+                          >
+                            {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
+                            Logout
+                          </Button> */}
+                        </div>
+
                       </div>
                     </form>
                   </Form>
                 </CardContent>
               </Card>
-
             </div>
           </div>
         </main>

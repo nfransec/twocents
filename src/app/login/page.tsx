@@ -10,11 +10,12 @@ export default function LoginPage() {
                 <div className='sub-container max-w-[496px]'>
                     <div className='flex justify-center items-center'>
                         <Image 
-                            src='/assets/icons/app-logo2.svg'
-                            height={100}
-                            width={100}
+                            // src='/assets/icons/app-logo2.svg'
+                            src='/2c.png'
+                            height={2000}
+                            width={2000}
                             alt='TwoCent'
-                            className='mb-12 h-10 w-fit justify-center items-center'
+                            className='mb-2 h-15 w-fit justify-center items-center'
                         />
                     </div>
                     <LoginForm />
