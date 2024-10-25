@@ -1,0 +1,21 @@
+{
+    "name": "TwoCents",
+    "short_name": "TwoCents",
+    "description": "Track and Manage your credit cards.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#1c1c28",
+    "theme_color": "#1c1c28",
+    "icons": [
+        {
+            "src": "/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
