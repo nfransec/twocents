@@ -70,16 +70,17 @@ const CardDesign = ({ card, isFlipped, onClick, onEdit, onDelete }: { card: Card
         
         {/* Back of the card */}
         <div className="absolute w-full h-full rounded-lg shadow-lg overflow-hidden bg-gray-800 p-6 backface-hidden rotate-y-180">
-          <h3 className="text-xl font-bold mb-4">{card.cardName} Details</h3>
-          <p className="mb-2">Bank: {card.bankName}</p>
+          <h3 className="text-xl font-bold mb-1">{card.cardName}</h3>
+          <div className='bg-gradient-to-r from-green-500 to-green-300 h-1 rounded-lg mb-4'></div>
+          <p className="mb-2">Bank: <span className='font-bold text-emerald-500'>{card.bankName}</span></p>
           <p className="mb-2">Credit Limit: ₹{card.cardLimit.toLocaleString()}</p>
-          <p className="mb-2">Outstanding: ₹{card.outstandingAmount.toLocaleString()}</p>
-          <p className="mb-4">Billing Date: {new Date(card.billingDate).toLocaleDateString()}</p>
-          <div className="flex justify-end mt-4 space-x-2">
-            <Button onClick={(e) => { e.stopPropagation(); onEdit(card) }} size="sm" className="bg-blue-500 hover:bg-blue-600">
+          <p className="mb-2">Total Due: <span className={card.outstandingAmount > 10000 ? "text-red-500 font-bold" : "text-green-500 font-bold"}>₹{card.outstandingAmount.toLocaleString()}</span></p>
+          <p className="">Billing Date: {new Date(card.billingDate).toLocaleDateString()}</p>
+          <div className="flex justify-end space-x-2">
+            <Button onClick={(e) => { e.stopPropagation(); onEdit(card) }} size="sm" className="hover:text-green-500">
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button onClick={(e) => { e.stopPropagation(); onDelete(card._id) }} size="sm" className="bg-red-500 hover:bg-red-600">
+            <Button onClick={(e) => { e.stopPropagation(); onDelete(card._id) }} size="sm" className="hover:text-red-500">
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
@@ -299,7 +300,13 @@ export default function CardsPage() {
                       zIndex: cards.length - absoluteDistance,
                     }}
                   >
-                    <CardDesign card={card} isFlipped={false} onClick={() => handleCardClick(card)} />
+                    <CardDesign 
+                      card={card} 
+                      isFlipped={false} 
+                      onClick={() => handleCardClick(card)}
+                      onEdit={handleEditCard}
+                      onDelete={handleDeleteCard}
+                    />
                   </div>
                 );
               })}
@@ -329,10 +336,10 @@ export default function CardsPage() {
                 <p className="mb-2">Total Due: <span className={cards[selectedCardIndex].outstandingAmount > 10000 ? "text-red-500 font-bold" : "text-green-500 font-bold"}>₹{cards[selectedCardIndex].outstandingAmount.toLocaleString()}</span></p>
                 <p className="mb-4">Billing Date: <span className="font-bold text-green-500">{new Date(cards[selectedCardIndex].billingDate).toLocaleDateString()}</span></p>
                 <div className="flex justify-end mt-4 space-x-2">
-                  <Button onClick={() => handleEditCard(cards[selectedCardIndex])} size="sm" className="bg-green-500 hover:bg-blue-600">
+                  <Button onClick={() => handleEditCard(cards[selectedCardIndex])} size="sm" className="hover:text-green-500">
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button onClick={() => handleDeleteCard(cards[selectedCardIndex]._id)} size="sm" className="bg-red-400 hover:bg-red-600">
+                  <Button onClick={() => handleDeleteCard(cards[selectedCardIndex]._id)} size="sm" className="hover:text-red-500">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
