@@ -11,7 +11,7 @@ import { Form } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
 import CustomFormField from '@/components/CustomFormField'
 import { FormFieldType } from '@/components/forms/UserForm'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import CardDesign from '@/components/CardDesign'
 
 const searchSchema = z.object({
   query: z.string().min(1, 'Search query is required'),
@@ -21,12 +21,16 @@ type SearchResult = {
   _id: string
   cardName: string
   bankName: string
-  cardNumber?: string  // Make this optional
+  cardNumber?: string
+  cardLimit: number
+  outstandingAmount: number
+  billingDate: string
 }
 
 export default function SearchPage() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [flippedCards, setFlippedCards] = useState<{ [key: string]: boolean }>({})
 
   const form = useForm<z.infer<typeof searchSchema>>({
     resolver: zodResolver(searchSchema),
@@ -55,6 +59,20 @@ export default function SearchPage() {
     }
   }
 
+  const handleCardFlip = (cardId: string) => {
+    setFlippedCards(prev => ({ ...prev, [cardId]: !prev[cardId] }))
+  }
+
+  const handleEditCard = (card: SearchResult) => {
+    // Implement edit functionality
+    console.log('Edit card:', card)
+  }
+
+  const handleDeleteCard = (cardId: string) => {
+    // Implement delete functionality
+    console.log('Delete card:', cardId)
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-semibold text-white mb-6">Search Your Cards</h1>
@@ -78,25 +96,20 @@ export default function SearchPage() {
       </Form>
 
       {searchResults.length > 0 && (
-        <div className="mt-8 space-y-4">
+        <div className="mt-8">
           <h2 className="text-xl font-semibold text-white mb-4">Your Search Results ({searchResults.length})</h2>
-          {searchResults.map((result) => (
-            <Card key={result._id} className="bg-dark-200">
-              <CardHeader>
-                <CardTitle className="text-white">{result.cardName}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-400">Bank: {result.bankName}</p>
-                <p className="text-gray-400">
-                  Card Number: {
-                    result.cardNumber 
-                      ? result.cardNumber.slice(-4).padStart(result.cardNumber.length, '*')
-                      : 'Not available'
-                  }
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {searchResults.map((card) => (
+              <CardDesign 
+                key={card._id}
+                card={card}
+                isFlipped={flippedCards[card._id] || false}
+                onClick={() => handleCardFlip(card._id)}
+                onEdit={handleEditCard}
+                onDelete={handleDeleteCard}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>

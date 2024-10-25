@@ -156,13 +156,13 @@ export default function ProfilePage() {
           </div>
         </header> */}
 
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
+        <main className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+          <div className="sm:px-0">
             <div className="flex flex-col md:flex-row gap-6">
               {/* Profile Card */}
               <Card className="flex-1 border-green-500">
                 <CardHeader>
-                  <CardTitle>My profile <span className='text-green-300'>|</span> {user?.fullName.split(' ')[0]}</CardTitle>
+                  {/* <CardTitle>My profile <span className='text-green-300'> | </span> {user?.fullName.split(' ')[0]}</CardTitle> */}
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col items-center mb-6">

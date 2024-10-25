@@ -10,8 +10,7 @@ export default function LoginPage() {
                 <div className='sub-container max-w-[496px]'>
                     <div className='flex justify-center items-center'>
                         <Image 
-                            // src='/assets/icons/app-logo2.svg'
-                            src='/2c.png'
+                            src='/assets/icons/2c.png'
                             height={2000}
                             width={2000}
                             alt='TwoCent'

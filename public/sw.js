@@ -7,7 +7,6 @@ self.addEventListener('install', (event) => {
                 '/manifest.json',
                 '/icon-192x192.png',
                 '/icon-512x512.png',
-                '/2c.png',
                 // Add other static assets here
             ]);
         })

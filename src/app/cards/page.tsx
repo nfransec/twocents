@@ -252,11 +252,11 @@ export default function CardsPage() {
           </div>
         </div>
       </header> */}
-      <main className="flex-1 overflow-hidden px-4 md:px-6 lg:px-8 py-8">
+      <main className="flex-1 overflow-hidden md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <p className="text-md text-gray-400 font-semibold">Total Due: <br />
-              <span className={totalOutstanding > 50000 ? "text-red-500 font-bold text-2xl" : "text-green-500 font-bold"}>₹{totalOutstanding.toLocaleString()}</span></p>
+          <div className="flex justify-between items-center mb-2">
+            <p className="text-sm text-gray-400 font-semibold">Total Due: <br />
+              <span className={totalOutstanding > 50000 ? "text-red-500 font-bold text-xl" : "text-green-500 font-bold"}>₹{totalOutstanding.toLocaleString()}</span></p>
             {/* <h2 className="text-md text-gray-400 font-bold">Total Credit Limit: ₹{totalCreditLimit.toLocaleString()}</h2> */}
             <Button className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 outline-none" onClick={() => setIsAddCardModalOpen(true)}>Add New Card</Button>
           </div>
@@ -313,7 +313,7 @@ export default function CardsPage() {
             </div> 
 
             {/* Add chevron controls */}
-            <div className="flex justify-center mt-10 space-x-4">
+            <div className="flex justify-center mt-4 space-x-4">
               <Button onClick={handlePrevCard} className="p-4 bg-dark-200 rounded-full">
                 <ChevronUp className="h-6 w-6 text-green-500" />
               </Button>
@@ -322,13 +322,13 @@ export default function CardsPage() {
               </Button>
             </div>
 
-            <div className='grid grid-cols-2 justify-center items-center gap-4 mt-10 mb-12 mx-2'>
+            {/* <div className='grid grid-cols-2 justify-center items-center gap-4 mt-10 mb-12 mx-2'>
               <Button className='bg-gradient-to-r from-green-500 to-teal-500 hover:from-red-500 hover:to-orange-500 outline-none'>Pay Now</Button>
               <Button className='border-green-500 text-green-500 outline hover:outline-none hover:bg-gradient-to-r hover:from-red-500 hover:to-orange-500 hover:text-white'>Mark as Paid</Button>
-            </div>
+            </div> */}
 
             {cards[selectedCardIndex] && (
-              <div className="mt-8 bg-dark-200 p-6 rounded-3xl shadow-xl">
+              <div className="bg-dark-200 p-6 rounded-3xl shadow-xl">
                 <h3 className="text-xl font-bold mb-2">{cards[selectedCardIndex].cardName}</h3>
                 <div className='bg-gradient-to-r from-green-400 to-green-700 w-full h-1 rounded-lg mb-6'></div>
                 <p className="mb-2">Bank: <span className="font-bold text-green-500">{cards[selectedCardIndex].bankName}</span></p>
