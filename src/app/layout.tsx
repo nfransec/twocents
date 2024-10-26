@@ -47,7 +47,7 @@ export default function RootLayout({
           defaultTheme='dark'
         >
           <div className="flex flex-col min-h-screen">
-            <ConditionalHeader />
+            {/* <ConditionalHeader /> */}
             <main className="flex-1 p-4">
               {children}
             </main>

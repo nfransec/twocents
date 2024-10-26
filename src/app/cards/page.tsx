@@ -6,10 +6,11 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { AddCardModal } from "@/components/AddCardModal"
 import { EditCardModal } from "@/components/EditCardModal"
-import { Bell, Trash2, Pencil, ChevronRight, ChevronLeft, ChevronUp, ChevronDown } from "lucide-react"
+import { Bell, Trash2, Pencil, ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { UserType } from "@/app/profile/page"
 import Image from "next/image"
+import { motion } from "framer-motion"
 
 export interface CardType {
   _id: string;
@@ -21,7 +22,7 @@ export interface CardType {
   cardNumber?: string;
 }
 
-const CardDesign = ({ card, isFlipped, onClick, onEdit, onDelete }: { card: CardType; isFlipped: boolean; onClick: () => void; onEdit: (card: CardType) => void; onDelete: (cardId: string) => void }) => {
+const CardDisplay = ({ card, isActive }: { card: CardType; isActive: boolean }) => {
   const getCardStyle = (cardName: string) => {
     const name = cardName.toLowerCase()
     if (name.includes('infinia')) return 'bg-gradient-to-tr from-blue-900 via-blue-800 to-blue-500'
@@ -39,54 +40,26 @@ const CardDesign = ({ card, isFlipped, onClick, onEdit, onDelete }: { card: Card
   const cardStyle = getCardStyle(card.cardName)
 
   return (
-    <div className="relative w-full h-60 perspective" onClick={onClick}>
-      <div className={`w-full h-full transition-transform duration-500 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
-        {/* Front of the card */}
-        <div className={`absolute w-full h-full rounded-lg shadow-lg overflow-hidden ${cardStyle} backface-hidden`}>
-          <div className="absolute inset-0 p-6 flex flex-col justify-between">
-            <div>
-              <h2 className="text-2xl font-bold mb-2 text-white">{card.bankName === 'American Express' ? 'American Express' : card.bankName.split(' ')[0]}</h2>
-              {/* <p className="text-sm mb-4 text-white opacity-80">{card.bankName}</p> */}
-            </div>
-            <div className="flex flex-col items-start gap-4">
-              <div>
-                <p className="text-sm text-white opacity-80">Total Due</p>
-                <p className={`text-lg font-semibold ${card.outstandingAmount > 10000 ? "text-red-900" : "text-green-900"}`}>
-                  ₹{card.outstandingAmount.toLocaleString()}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-white opacity-80">Due Date</p>
-                <p className="text-lg font-semibold text-white">{new Date(card.billingDate).getDate()}</p>
-              </div>
-            </div>
-            <div className="absolute bottom-4 right-4">
-              <span className="text-white text-2xl font-bold">
-                {card.cardName.split(' ')[0].toUpperCase()}
-              </span>
-            </div>
-          </div>
+    <motion.div 
+      className={`h-44 w-96 rounded-xl shadow-lg overflow-hidden ${cardStyle}`}
+      initial={{ scale: 0.9, opacity: 0.7 }}
+      animate={{ scale: isActive ? 1 : 0.9, opacity: isActive ? 1 : 0.7 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="p-6 flex flex-col justify-between h-full">
+        <div>
+          <h2 className="text-xl font-bold text-white">{card.cardName}</h2>
+          <p className="text-sm text-white opacity-80">{card.bankName}</p>
         </div>
-        
-        {/* Back of the card */}
-        <div className="absolute w-full h-full rounded-lg shadow-lg overflow-hidden bg-gray-800 p-6 backface-hidden rotate-y-180">
-          <h3 className="text-xl font-bold mb-1">{card.cardName}</h3>
-          <div className='bg-gradient-to-r from-green-500 to-green-300 h-1 rounded-lg mb-4'></div>
-          <p className="mb-2">Bank: <span className='font-bold text-emerald-500'>{card.bankName}</span></p>
-          <p className="mb-2">Credit Limit: ₹{card.cardLimit.toLocaleString()}</p>
-          <p className="mb-2">Total Due: <span className={card.outstandingAmount > 10000 ? "text-red-500 font-bold" : "text-green-500 font-bold"}>₹{card.outstandingAmount.toLocaleString()}</span></p>
-          <p className="">Billing Date: {new Date(card.billingDate).toLocaleDateString()}</p>
-          <div className="flex justify-end space-x-2">
-            <Button onClick={(e) => { e.stopPropagation(); onEdit(card) }} size="sm" className="hover:text-green-500">
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button onClick={(e) => { e.stopPropagation(); onDelete(card._id) }} size="sm" className="hover:text-red-500">
-              <Trash2 className="h-4 w-4" />
-            </Button>
+        <div className="flex gap-16 items-end">
+          <div>
+            <p className="text-sm text-white opacity-80">Due</p>
+            <p className="text-lg font-semibold text-white">₹{card.outstandingAmount.toLocaleString()}</p>
           </div>
+          <p className="text-white">•••• {card.cardNumber?.slice(-4) || '0000'}</p>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -97,10 +70,7 @@ export default function CardsPage() {
   const [cards, setCards] = useState<CardType[]>([])
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false)
   const [editingCard, setEditingCard] = useState<CardType | null>(null)
-  const [selectedCard, setSelectedCard] = useState<CardType | null>(null)
-  const [currentCardIndex, setCurrentCardIndex] = useState(0)
-  const [selectedCardIndex, setSelectedCardIndex] = useState(0)
-  const [flippedCards, setFlippedCards] = useState<{ [key: string]: boolean }>({})
+  const [activeCardIndex, setActiveCardIndex] = useState(0)
 
   useEffect(() => {
     fetchCards()
@@ -205,149 +175,96 @@ export default function CardsPage() {
   // const totalCreditLimit = cards.reduce((acc, card) => acc + card.cardLimit, 0)
   
 
-  const handleCardClick = (card: CardType) => {
-    setSelectedCard(card)
-  }
+  const changeActiveCard = useCallback((direction: 'next' | 'prev') => {
+    setActiveCardIndex((currentIndex) => {
+      if (direction === 'next') {
+        return currentIndex === cards.length - 1 ? 0 : currentIndex + 1;
+      } else {
+        return currentIndex === 0 ? cards.length - 1 : currentIndex - 1;
+      }
+    });
+  }, [cards.length]);
 
-  const handlePrevCard = () => {
-    setSelectedCardIndex((prev) => (prev - 1 + cards.length) % cards.length)
-  }
+  const handleNextCard = useCallback(() => changeActiveCard('next'), [changeActiveCard]);
+  const handlePrevCard = useCallback(() => changeActiveCard('prev'), [changeActiveCard]);
 
-  const handleNextCard = () => {
-    setSelectedCardIndex((prev) => (prev + 1) % cards.length)
-  }
-
-  const handleCardScroll = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (event.deltaY > 0) {
-      setSelectedCardIndex((prev) => (prev + 1) % cards.length)
-    } else {
-      setSelectedCardIndex((prev) => (prev - 1 + cards.length) % cards.length)
-    }
-  }
-
-  const handleCardFlip = (cardId: string) => {
-    setFlippedCards(prev => ({ ...prev, [cardId]: !prev[cardId] }))
-  }
+  useEffect(() => {
+    console.log('Active Card Index:', activeCardIndex); // Debugging log
+  }, [activeCardIndex]);
 
   return (
-    <div className="flex flex-col min-h-screen text-white pb-16 md:pb-0 bg-dark-300">
-      {/* <header className="shadow-sm bg-dark-300">
-        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-2xl font-semibold text-white">My Cards</h1>
-          <div className="flex items-center">
-            <Bell className="h-5 w-5 text-gray-400 mr-4" />
-            <div className="flex items-center">
-              <Image 
-                src="/assets/icons/user2.svg" 
-                alt="Profile" 
-                width={32} 
-                height={32} 
-                className="rounded-full mr-2" 
-              />
-              <span className="text-sm font-medium text-white">
-                Hello,
-                <span className="font-bold text-green-500"> {currentUser?.fullName?.split(' ')[0]}</span>
-              </span>
-            </div>
-          </div>
-        </div>
-      </header> */}
-      <main className="flex-1 overflow-hidden md:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-2">
-            <p className="text-sm text-gray-400 font-semibold">Total Due: <br />
-              <span className={totalOutstanding > 50000 ? "text-red-500 font-bold text-xl" : "text-green-500 font-bold"}>₹{totalOutstanding.toLocaleString()}</span></p>
-            {/* <h2 className="text-md text-gray-400 font-bold">Total Credit Limit: ₹{totalCreditLimit.toLocaleString()}</h2> */}
-            <Button className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 outline-none" onClick={() => setIsAddCardModalOpen(true)}>Add New Card</Button>
-          </div>
-          
-          {/* Desktop view */}
-          <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {cards.map((card) => (
-              <CardDesign 
-                key={card._id} 
-                card={card} 
-                isFlipped={flippedCards[card._id]} 
-                onClick={() => handleCardFlip(card._id)}
-                onEdit={handleEditCard}
-                onDelete={handleDeleteCard}
-              />
-            ))}
-          </div>
+    <div className="flex flex-col bg-[#1c1c28] text-white rounded-3xl">
+      <header className="p-4 flex justify-between items-center">
+        <ChevronLeft className="w-4 h-4" />
+        <h1 className="text-xl font-bold">Your Cards</h1>
+        <Bell className="w-4 h-4" />
+      </header>
 
-          {/* Mobile view */}
-          <div className="md:hidden">
-            <div 
-              className="relative h-80 overflow-hidden"
-              onWheel={handleCardScroll}
+      <main className="flex-1 overflow-hidden p-4">
+        <div className="relative mb-1">
+          <div id="card-carousel" className="h-52 overflow-hidden">
+            <button 
+              onClick={handlePrevCard} 
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-gray-900 bg-opacity-30 rounded-r-full p-2"
             >
-              {cards.map((card, index) => {
-                const distance = index - selectedCardIndex;
-                const absoluteDistance = Math.abs(distance);
-                const isBeforeSelected = distance < 0;
-
-                return (
-                  <div
-                    key={card._id}
-                    className={`absolute w-full transition-all duration-500 ease-in-out mt-10`}
-                    style={{
-                      transform: `
-                        translateY(${distance * 30}%)
-                        scale(${1 - absoluteDistance * 0.1})
-                        translateZ(${isBeforeSelected ? '-' : ''}${absoluteDistance * 10}px)
-                      `,
-                      opacity: 1 - absoluteDistance * 0.2,
-                      zIndex: cards.length - absoluteDistance,
-                    }}
-                  >
-                    <CardDesign 
-                      card={card} 
-                      isFlipped={false} 
-                      onClick={() => handleCardClick(card)}
-                      onEdit={handleEditCard}
-                      onDelete={handleDeleteCard}
-                    />
-                  </div>
-                );
-              })}
-            </div> 
-
-            {/* Add chevron controls */}
-            <div className="flex justify-center mt-4 space-x-4">
-              <Button onClick={handlePrevCard} className="p-4 bg-dark-200 rounded-full">
-                <ChevronUp className="h-6 w-6 text-green-500" />
-              </Button>
-              <Button onClick={handleNextCard} className="p-4 bg-dark-200 rounded-full">
-                <ChevronDown className="h-6 w-6 text-green-500" />
-              </Button>
-            </div>
-
-            {/* <div className='grid grid-cols-2 justify-center items-center gap-4 mt-10 mb-12 mx-2'>
-              <Button className='bg-gradient-to-r from-green-500 to-teal-500 hover:from-red-500 hover:to-orange-500 outline-none'>Pay Now</Button>
-              <Button className='border-green-500 text-green-500 outline hover:outline-none hover:bg-gradient-to-r hover:from-red-500 hover:to-orange-500 hover:text-white'>Mark as Paid</Button>
-            </div> */}
-
-            {cards[selectedCardIndex] && (
-              <div className="bg-dark-200 p-6 rounded-3xl shadow-xl">
-                <h3 className="text-xl font-bold mb-2">{cards[selectedCardIndex].cardName}</h3>
-                <div className='bg-gradient-to-r from-green-400 to-green-700 w-full h-1 rounded-lg mb-6'></div>
-                <p className="mb-2">Bank: <span className="font-bold text-green-500">{cards[selectedCardIndex].bankName}</span></p>
-                <p className="mb-2">Credit Limit: <span className="font-bold text-green-500">₹{cards[selectedCardIndex].cardLimit.toLocaleString()}</span></p>
-                <p className="mb-2">Total Due: <span className={cards[selectedCardIndex].outstandingAmount > 10000 ? "text-red-500 font-bold" : "text-green-500 font-bold"}>₹{cards[selectedCardIndex].outstandingAmount.toLocaleString()}</span></p>
-                <p className="mb-4">Billing Date: <span className="font-bold text-green-500">{new Date(cards[selectedCardIndex].billingDate).toLocaleDateString()}</span></p>
-                <div className="flex justify-end mt-4 space-x-2">
-                  <Button onClick={() => handleEditCard(cards[selectedCardIndex])} size="sm" className="hover:text-green-500">
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button onClick={() => handleDeleteCard(cards[selectedCardIndex]._id)} size="sm" className="hover:text-red-500">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <div className="flex transition-transform duration-300 ease-in-out" 
+                 style={{ transform: `translateX(-${activeCardIndex * 100}%)` }}>
+              {cards.map((card, index) => (
+                <div
+                  key={card._id}
+                  className="w-full flex-shrink-0 px-4"
+                  style={{ transform: `scale(${index === activeCardIndex ? 1 : 0.9})` }}
+                >
+                  <CardDisplay card={card} isActive={index === activeCardIndex} />
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
+            <button 
+              onClick={handleNextCard} 
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-gray-800 bg-opacity-50 rounded-l-full p-2"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
           </div>
         </div>
+
+        <div className="flex justify-center mb-4">
+          {cards.map((_, index) => (
+            <div
+              key={index}
+              className={`w-2 h-2 rounded-full mx-1 ${
+                index === activeCardIndex ? 'bg-white' : 'bg-gray-600'
+              }`}
+            />
+          ))}
+        </div>
+
+        {cards[activeCardIndex] && (
+          <div className="bg-gray-800 rounded-lg p-4 shadow-md mb-4">
+            <h3 className="text-lg font-semibold mb-2">{cards[activeCardIndex].cardName}</h3>
+            <p className="text-sm mb-2">Credit Limit: ₹{cards[activeCardIndex].cardLimit.toLocaleString()}</p>
+            <p className="text-sm mb-2">Due Date: {new Date(cards[activeCardIndex].billingDate).toLocaleDateString()}</p>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button onClick={() => handleEditCard(cards[activeCardIndex])} size="sm" variant="outline">
+                <Pencil className="h-4 w-4 mr-2" /> Edit
+              </Button>
+              <Button onClick={() => handleDeleteCard(cards[activeCardIndex]._id)} size="sm" variant="outline" className="text-red-500">
+                <Trash2 className="h-4 w-4 mr-2" /> Delete
+              </Button>
+            </div>
+          </div>
+        )}
+        <Button 
+          onClick={() => setIsAddCardModalOpen(true)} 
+          className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600"
+        >
+          <Plus className="mr-2 h-4 w-4" /> Add New Card
+        </Button>
       </main>
+
+      {/* Modals */}
       {isAddCardModalOpen && (
         <AddCardModal
           isOpen={isAddCardModalOpen}

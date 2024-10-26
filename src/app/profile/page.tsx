@@ -138,7 +138,7 @@ export default function ProfilePage() {
   const progressValue = (15000 / 20000) * 100;
 
   return (
-    <div className='flex flex-col text-white'>
+    <div className='flex flex-col text-white bg-[#1c1c28] p-4 sm:p-6 rounded-3xl max-w-6xl mx-auto'>
       <main className='flex-1 overflow-y-auto'>
         <div className='max-w-md mx-auto px-2 py-2'>
           <header className='flex justify-between items-center mb-6'>
@@ -186,6 +186,7 @@ export default function ProfilePage() {
           </div>
         </div>
       </main>
+      <div className='mb-60' />
     </div>
   )
 }
