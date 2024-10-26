@@ -41,7 +41,7 @@ const CardDisplay = ({ card, isActive }: { card: CardType; isActive: boolean }) 
 
   return (
     <motion.div 
-      className={`h-44 w-96 rounded-xl shadow-lg overflow-hidden ${cardStyle}`}
+      className={`h-44 w-46 rounded-xl shadow-lg overflow-hidden ${cardStyle}`}
       initial={{ scale: 0.9, opacity: 0.7 }}
       animate={{ scale: isActive ? 1 : 0.9, opacity: isActive ? 1 : 0.7 }}
       transition={{ duration: 0.3 }}
@@ -51,12 +51,12 @@ const CardDisplay = ({ card, isActive }: { card: CardType; isActive: boolean }) 
           <h2 className="text-xl font-bold text-white">{card.cardName}</h2>
           <p className="text-sm text-white opacity-80">{card.bankName}</p>
         </div>
-        <div className="flex gap-16 items-end">
+        <div className="flex items-end justify-between">
           <div>
             <p className="text-sm text-white opacity-80">Due</p>
             <p className="text-lg font-semibold text-white">₹{card.outstandingAmount.toLocaleString()}</p>
           </div>
-          <p className="text-white">•••• {card.cardNumber?.slice(-4) || '0000'}</p>
+          <p className="text-white">•••• {card.cardNumber?.slice(-4) || 'XXXX'}</p>
         </div>
       </div>
     </motion.div>
@@ -202,7 +202,7 @@ export default function CardsPage() {
 
       <main className="flex-1 overflow-hidden p-4">
         <div className="relative mb-1">
-          <div id="card-carousel" className="h-52 overflow-hidden">
+          <div id="card-carousel" className="h-48 overflow-hidden">
             <button 
               onClick={handlePrevCard} 
               className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-gray-900 bg-opacity-30 rounded-r-full p-2"
@@ -235,10 +235,20 @@ export default function CardsPage() {
             <div
               key={index}
               className={`w-2 h-2 rounded-full mx-1 ${
-                index === activeCardIndex ? 'bg-white' : 'bg-gray-600'
+                index === activeCardIndex ? 'bg-emerald-500' : 'bg-gray-600'
               }`}
             />
           ))}
+        </div>
+
+        <div className="flex items-center">
+          <Button 
+            onClick={() => setIsAddCardModalOpen(true)} 
+            className="bg-gray-700 hover:bg-gray-600 p-8 rounded-xl"
+          >
+            <Plus className="h-4 w-4" />
+            Add
+          </Button>
         </div>
 
         {cards[activeCardIndex] && (

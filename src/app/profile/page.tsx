@@ -15,7 +15,7 @@ import { Icons } from "@/components/ui/icons"
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Switch } from "@/components/ui/switch"
-import { Bell, CreditCard, FileText, HelpCircle, Home, LogOut, User, QrCode, ChevronRight, ChevronLeft, Pencil, Settings } from "lucide-react"
+import { Bell, CreditCard, FileText, HelpCircle, Home, LogOut, User, QrCode, ChevronRight, ChevronLeft, Pencil, Settings, Banknote, PiggyBank, PiggyBankIcon } from "lucide-react"
 import CustomSidebar from "@/components/customSidebar"
 import CustomFormField from "@/components/CustomFormField"
 import { FormFieldType } from "@/components/forms/UserForm"
@@ -120,20 +120,18 @@ export default function ProfilePage() {
     }
   }
 
-
-
-  // const logout = async () => {
-  //   setIsLoading(true)
-  //   try {
-  //     await axios.get('/api/users/logout')
-  //     toast.success('Logout successful')
-  //     router.push('/login')
-  //   } catch (error) {
-  //     handleError(error)
-  //   } finally {
-  //     setIsLoading(false)
-  //   }
-  // }
+  const logout = async () => {
+    setIsLoading(true)
+    try {
+      await axios.get('/api/users/logout')
+      toast.success('Logout successful')
+      router.push('/login')
+    } catch (error) {
+      handleError(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const progressValue = (15000 / 20000) * 100;
 
@@ -162,31 +160,47 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className='border-b border-gray-800 mb-4'/>
+          <div className='border-b border-emerald-900 mb-4'/>
 
           <div className='space-y-4'>
             {[
               { icon: User, label: 'Personal Information' },
-              { icon: CreditCard, label: 'Bank Information' },
+              { icon: Bell, label: 'Notifications' },
+              { icon: CreditCard, label: 'Card Settings' },
+              { icon: Banknote, label: 'Bank Accounts' },
               { icon: HelpCircle, label: 'Consent and Privacy' },
               { icon: Settings, label: 'Account Settings' },
+
             ].map((item, index) => (
               <Button
                 key={index}
                 variant='ghost'
-                className='text-gray-300 hover:bg-gray-100 w-full justify-between'
+                className='text-gray-300 hover:bg-emerald-900 w-full justify-between'
               >
                 <div className='flex items-center gap-2'>
                   <item.icon className='h-5 w-5 text-gray-400' />
                   {item.label}
                 </div>
-                <ChevronRight className='h-4 w-4 text-green-500' />
+                <ChevronRight className='h-4 w-4 text-gray-400' />
               </Button>
             ))}
           </div>
+
+          <div className='border-b border-emerald-900 mt-4'/>
+
+          <div 
+            className='flex flex-row items-center gap-2 mt-6 ml-5 mb-2 text-red-500 cursor-pointer'
+            onClick={logout}
+          >
+            <LogOut className='w-4 h-4 text-red-500'/>
+            Logout
+          </div>
+          
+          {/* <div className='border-b border-emerald-900 mt-5'/> */}
+
         </div>
       </main>
-      <div className='mb-60' />
+      {/* <div className='mb-40' /> */}
     </div>
   )
 }
