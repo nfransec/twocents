@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/database/database";
 import User from "@/models/userModel";
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
+
+// Increase the max listeners for the MongoDB connection
+mongoose.connection.setMaxListeners(15);  // or a higher number if needed
 
 export async function GET(request: NextRequest) {
     try {
