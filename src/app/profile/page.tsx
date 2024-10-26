@@ -190,124 +190,124 @@ export default function ProfilePage() {
   )
 }
 
-const Profile = () => {
-  return (
-    <div className="flex flex-col min-h-screen text-white pb-16 md:pb-0">
-    <div className="flex-1 overflow-auto px-4 md:px-6 lg:px-8">
-        <main className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-          <div className="sm:px-0">
-            <div className="flex flex-col md:flex-row gap-6">
-              {/* Profile Card */}
-              <Card className="flex-1 border-green-500">
-                <CardHeader>
-                  {/* <CardTitle>My profile <span className='text-green-300'> | </span> {user?.fullName.split(' ')[0]}</CardTitle> */}
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col items-center mb-6">
-                    <Image
-                      src={user?.profilePicture || "/assets/icons/user2.svg"}
-                      alt="Profile"
-                      width={200}
-                      height={200}
-                      className="rounded-full mb-4"
-                    />
-                  </div>
-                  <Form {...userForm}>
-                    <form onSubmit={userForm.handleSubmit(onSubmitUserForm)} className="space-y-4">
+// const Profile = () => {
+//   return (
+//     <div className="flex flex-col min-h-screen text-white pb-16 md:pb-0">
+//     <div className="flex-1 overflow-auto px-4 md:px-6 lg:px-8">
+//         <main className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+//           <div className="sm:px-0">
+//             <div className="flex flex-col md:flex-row gap-6">
+//               {/* Profile Card */}
+//               <Card className="flex-1 border-green-500">
+//                 <CardHeader>
+//                   {/* <CardTitle>My profile <span className='text-green-300'> | </span> {user?.fullName.split(' ')[0]}</CardTitle> */}
+//                 </CardHeader>
+//                 <CardContent>
+//                   <div className="flex flex-col items-center mb-6">
+//                     <Image
+//                       src={user?.profilePicture || "/assets/icons/user2.svg"}
+//                       alt="Profile"
+//                       width={200}
+//                       height={200}
+//                       className="rounded-full mb-4"
+//                     />
+//                   </div>
+//                   <Form {...userForm}>
+//                     <form onSubmit={userForm.handleSubmit(onSubmitUserForm)} className="space-y-4">
 
-                      <CustomFormField
-                          fieldType={FormFieldType.INPUT}
-                          control={userForm.control}
-                          name="fullName"
-                          placeholder="John Doe"
-                          iconSrc="/assets/icons/user.svg"
-                          iconAlt="user"
-                      />
+//                       <CustomFormField
+//                           fieldType={FormFieldType.INPUT}
+//                           control={userForm.control}
+//                           name="fullName"
+//                           placeholder="John Doe"
+//                           iconSrc="/assets/icons/user.svg"
+//                           iconAlt="user"
+//                       />
 
-                      <CustomFormField
-                        fieldType={FormFieldType.INPUT}
-                        control={userForm.control}
-                        name="username"
-                        placeholder="johndoe"
-                        iconSrc="/assets/icons/username.svg"
-                        iconAlt="user"
-                        description="This is your unique username on the platform."
-                      />
+//                       <CustomFormField
+//                         fieldType={FormFieldType.INPUT}
+//                         control={userForm.control}
+//                         name="username"
+//                         placeholder="johndoe"
+//                         iconSrc="/assets/icons/username.svg"
+//                         iconAlt="user"
+//                         description="This is your unique username on the platform."
+//                       />
 
-                      <CustomFormField
-                          fieldType={FormFieldType.INPUT}
-                          control={userForm.control}
-                          name="email"
-                          placeholder="johndoe@gmail.com"
-                          iconSrc="/assets/icons/email2.svg"
-                          iconAlt="email"
-                      />
+//                       <CustomFormField
+//                           fieldType={FormFieldType.INPUT}
+//                           control={userForm.control}
+//                           name="email"
+//                           placeholder="johndoe@gmail.com"
+//                           iconSrc="/assets/icons/email2.svg"
+//                           iconAlt="email"
+//                       />
         
-                      {/* <CustomFormField
-                          fieldType={FormFieldType.PHONE_INPUT}
-                          control={userForm.control}
-                          name="phoneNumber"
-                          placeholder="(555) 123-4567"
-                      /> */}
+//                       {/* <CustomFormField
+//                           fieldType={FormFieldType.PHONE_INPUT}
+//                           control={userForm.control}
+//                           name="phoneNumber"
+//                           placeholder="(555) 123-4567"
+//                       /> */}
                     
                       
-                      <div className="mt-10">
-                        <CustomFormField
-                          fieldType={FormFieldType.SKELETON}
-                          control={userForm.control}
-                          name='bankStatement'
-                          label='Upload Your Bank Statement'
-                          renderSkeleton={(field) => (
-                            <FormControl>
-                              <FileUploader files={field.value} onChange={field.onChange} />
-                            </FormControl>
-                          )}
-                        />
+//                       <div className="mt-10">
+//                         <CustomFormField
+//                           fieldType={FormFieldType.SKELETON}
+//                           control={userForm.control}
+//                           name='bankStatement'
+//                           label='Upload Your Bank Statement'
+//                           renderSkeleton={(field) => (
+//                             <FormControl>
+//                               <FileUploader files={field.value} onChange={field.onChange} />
+//                             </FormControl>
+//                           )}
+//                         />
 
-                        <section className='mt-4 space-y-6'>
-                          <div className='mb-9 space-y-1 flex flex-col gap-4'>
-                            <h2 className='text-14-bold'>Consent and Privacy</h2>
-                            <CustomFormField
-                              fieldType={FormFieldType.CHECKBOX}
-                              control={userForm.control}
-                              name='privacyConsent'
-                              label='I agree to the terms and conditions and consent to the processing of my personal data in accordance with the Privacy Policy.'
-                            />
+//                         <section className='mt-4 space-y-6'>
+//                           <div className='mb-9 space-y-1 flex flex-col gap-4'>
+//                             <h2 className='text-14-bold'>Consent and Privacy</h2>
+//                             <CustomFormField
+//                               fieldType={FormFieldType.CHECKBOX}
+//                               control={userForm.control}
+//                               name='privacyConsent'
+//                               label='I agree to the terms and conditions and consent to the processing of my personal data in accordance with the Privacy Policy.'
+//                             />
 
-                            <CustomFormField 
-                              fieldType={FormFieldType.CHECKBOX}
-                              control={userForm.control}
-                              name='acknowledgementConsent'
-                              label='I acknowledge that I have read and understood the above consent and privacy policy.'
-                            />
-                          </div>
-                        </section>
+//                             <CustomFormField 
+//                               fieldType={FormFieldType.CHECKBOX}
+//                               control={userForm.control}
+//                               name='acknowledgementConsent'
+//                               label='I acknowledge that I have read and understood the above consent and privacy policy.'
+//                             />
+//                           </div>
+//                         </section>
 
-                        <div className="flex flex-row space-x-4 mt-6 justify-between">
-                          <Button type="submit" className="w-full bg-green-500" disabled={isLoading}>
-                            {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
-                            Save and Continue
-                          </Button>
-                          {/* <Button
-                            type="button"
-                            className="w-full bg-red-500 text-white"
-                            onClick={logout}
-                            disabled={isLoading}
-                          >
-                            {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
-                            Logout
-                          </Button> */}
-                        </div>
+//                         <div className="flex flex-row space-x-4 mt-6 justify-between">
+//                           <Button type="submit" className="w-full bg-green-500" disabled={isLoading}>
+//                             {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
+//                             Save and Continue
+//                           </Button>
+//                           {/* <Button
+//                             type="button"
+//                             className="w-full bg-red-500 text-white"
+//                             onClick={logout}
+//                             disabled={isLoading}
+//                           >
+//                             {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
+//                             Logout
+//                           </Button> */}
+//                         </div>
 
-                      </div>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </main>
-      </div>
-      </div>
-  )
-}
+//                       </div>
+//                     </form>
+//                   </Form>
+//                 </CardContent>
+//               </Card>
+//             </div>
+//           </div>
+//         </main>
+//       </div>
+//       </div>
+//   )
+// }
