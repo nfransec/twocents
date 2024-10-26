@@ -15,13 +15,14 @@ import { Icons } from "@/components/ui/icons"
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Switch } from "@/components/ui/switch"
-import { Bell, CreditCard, FileText, HelpCircle, Home, LogOut, User } from "lucide-react"
+import { Bell, CreditCard, FileText, HelpCircle, Home, LogOut, User, QrCode, ChevronRight, ChevronLeft, Pencil, Settings } from "lucide-react"
 import CustomSidebar from "@/components/customSidebar"
 import CustomFormField from "@/components/CustomFormField"
 import { FormFieldType } from "@/components/forms/UserForm"
 import BottomNavigation from "@/components/BottomNavigation"
 import FileUploader from "@/components/FileUploader"
 import { UserFormDefaultValues } from "../../../constants"
+import { Progress } from "@/components/ui/progress"
 
 
 
@@ -134,28 +135,65 @@ export default function ProfilePage() {
     }
   }
 
+  const progressValue = (15000 / 20000) * 100;
+
   return (
-    <div className="flex flex-col min-h-screen text-white pb-16 md:pb-0">
-      <div className="flex-1 overflow-auto px-4 md:px-6 lg:px-8">
-        {/* <header className="shadow-sm">
-          <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <h1 className="text-2xl font-semibold text-white mt-4">{user?.fullName?.split(' ')[0]}&#39;s dashboard</h1>
-            <div className="flex items-center">
-              <Bell className="h-5 w-5 text-gray-400 mr-4" />
-              <div className="flex items-center">
-                <Image
-                  src={user?.profilePicture || "/assets/icons/user2.svg"}
-                  alt="Profile"
-                  width={32}
-                  height={32}
-                  className="rounded-full mr-2"
-                />
-                <span className="text-sm font-medium text-white">Hello, <span className="font-bold text-green-500">{user?.fullName?.split(' ')[0]}</span></span>
+    <div className='flex flex-col text-white'>
+      <main className='flex-1 overflow-y-auto'>
+        <div className='max-w-md mx-auto px-2 py-2'>
+          <header className='flex justify-between items-center mb-6'>
+            <span className='flex items-center gap-2'>
+              <ChevronLeft className='w-4 h-4 text-green-500'/>
+              <h1 className='text-14-regular'>My Profile</h1>
+            </span>
+            <QrCode className='w-6 h-6 text-gray-600' />
+          </header>
+
+          <div className='flex flex-row items-center gap-4 mb-4'>
+            <Image src='/assets/icons/user2.svg' alt='user' width={50} height={50} className='rounded-full mb-2 bg-gray-700'/>
+            <div className='flex flex-row items-center justify-between flex-grow'>
+              <div className='flex flex-col'>
+                <h2 className='text-16-regular'>{user?.fullName}</h2>
+                <p className='text-14-regular text-green-500'>{user?.username}</p>
+              </div>
+              <div className='border-gray-800 border rounded-full p-2'>
+                <Pencil className='w-4 h-4 text-gray-400'/>
               </div>
             </div>
           </div>
-        </header> */}
 
+          <div className='border-b border-gray-800 mb-4'/>
+
+          <div className='space-y-4'>
+            {[
+              { icon: User, label: 'Personal Information' },
+              { icon: CreditCard, label: 'Bank Information' },
+              { icon: HelpCircle, label: 'Consent and Privacy' },
+              { icon: Settings, label: 'Account Settings' },
+            ].map((item, index) => (
+              <Button
+                key={index}
+                variant='ghost'
+                className='text-gray-300 hover:bg-gray-100 w-full justify-between'
+              >
+                <div className='flex items-center gap-2'>
+                  <item.icon className='h-5 w-5 text-gray-400' />
+                  {item.label}
+                </div>
+                <ChevronRight className='h-4 w-4 text-green-500' />
+              </Button>
+            ))}
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
+
+const Profile = () => {
+  return (
+    <div className="flex flex-col min-h-screen text-white pb-16 md:pb-0">
+    <div className="flex-1 overflow-auto px-4 md:px-6 lg:px-8">
         <main className="max-w-7xl mx-auto sm:px-6 lg:px-8">
           <div className="sm:px-0">
             <div className="flex flex-col md:flex-row gap-6">
@@ -270,6 +308,6 @@ export default function ProfilePage() {
           </div>
         </main>
       </div>
-    </div>
+      </div>
   )
 }
