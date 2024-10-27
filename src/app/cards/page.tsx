@@ -24,6 +24,7 @@ export interface CardType {
   billingDate: string;
   outstandingAmount: number;
   cardNumber?: string;
+  cvv?: string;
 }
 
 const CardDisplay = ({ card, isActive }: { card: CardType; isActive: boolean }) => {
