@@ -50,7 +50,7 @@ export default function RootLayout({
         >
           <div className="flex flex-col min-h-screen">
             {/* <ConditionalHeader /> */}
-            <main className="flex-1 p-4">
+            <main className="flex-1 overflow-x-hidden">
               {children}
             </main>
             <ConditionalBottomNav />

@@ -1,17 +1,30 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Share2, Facebook, Twitter, Linkedin } from 'lucide-react'
+import { Share2, Lock, Facebook, Twitter, Linkedin, Calendar, CreditCard, Eye, EyeOff, LockIcon, PencilIcon, MoreHorizontal, ChevronLeft } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Card } from '@/components/ui/card'
+import { useRouter } from 'next/navigation'
 
 export default function HomePage() {
+  const router = useRouter();
+  const [showInfo, setShowInfo] = useState(true)
   const [timeLeft, setTimeLeft] = useState({
     days: 10,
     hours: 18,
     minutes: 36,
     seconds: 48
   })
+
+  const cardDetails = {
+    cardName: 'Sample Card',
+    cardNumber: '1234 5678 9101 1234',
+    cardHolderName: 'John Doe',
+    expiryDate: '12/24',
+    cvv: '123',
+    balance: 100.00
+  }
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -35,70 +48,104 @@ export default function HomePage() {
   }, [])
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-100 to-blue-100">
-      <div className="flex-grow p-4 sm:p-6 md:p-8 flex flex-col">
-        <div className="mb-8">
-          <div className="flex items-center mb-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-500 flex items-center justify-center text-white text-xl sm:text-2xl font-bold">
-              TC
+    <div className="flex flex-col min-h-screen bg-gray-100">
+      <header className="bg-white p-4 flex justify-between items-center">
+        <button onClick={() => router.back()} className="text-gray-600">
+          <ChevronLeft size={24} />
+        </button>
+        <h1 className="text-lg font-semibold">CARD DETAILS</h1>
+        <button className="text-gray-600">
+          <MoreHorizontal size={24} />
+        </button>
+      </header>
+
+      <main className="flex-1 p-4">
+        <div className="mb-6">
+          <Card className="bg-gray-800 text-white p-6 rounded-xl shadow-lg">
+            <div className="flex justify-between items-start mb-8">
+              <div className="w-12 h-8 bg-gradient-to-r from-yellow-400 to-yellow-200 rounded"></div>
+              <p className="text-2xl font-bold">VISA</p>
             </div>
-            <h1 className="ml-3 sm:ml-4 text-xl sm:text-2xl font-semibold text-gray-700">TwoCent</h1>
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-blue-600 mb-2 sm:mb-4">Coming Soon...</h2>
-          <p className="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-8">Stay Connected, Stay Updated!</p>
-        </div>
-
-        <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg p-6 sm:p-8 mb-8">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 sm:mb-8">
-            {Object.entries(timeLeft).map(([unit, value]) => (
-              <div key={unit} className="text-center bg-white/10 rounded-lg p-2">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">{value}</div>
-                <div className="text-xs sm:text-sm uppercase text-blue-100">{unit}</div>
+            <p className="text-2xl mb-4">{cardDetails.cardNumber}</p>
+            <div className="flex justify-between items-end">
+              <div>
+                <p className="text-sm opacity-80">Balance</p>
+                <p className="text-3xl font-bold">${cardDetails.balance.toFixed(2)}</p>
               </div>
-            ))}
+              <p>{cardDetails.cardHolderName}</p>
+            </div>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <Button variant="outline" className="flex flex-col items-center py-4">
+            <Lock className="mb-2" size={24} />
+            <span className="text-xs">Lock Card</span>
+          </Button>
+          <Button variant="outline" className="flex flex-col items-center py-4">
+            <PencilIcon className="mb-2" size={24} />
+            <span className="text-xs">Edit Details</span>
+          </Button>
+          <Button variant="outline" className="flex flex-col items-center py-4">
+            <MoreHorizontal className="mb-2" size={24} />
+            <span className="text-xs">More</span>
+          </Button>
+        </div>
+
+        <div className="bg-white rounded-lg p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">CARD INFORMATION</h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowInfo(!showInfo)}
+              className="text-xs"
+            >
+              {showInfo ? (
+                <>
+                  <EyeOff size={16} className="mr-1" /> Hide info
+                </>
+              ) : (
+                <>
+                  <Eye size={16} className="mr-1" /> Show info
+                </>
+              )}
+            </Button>
           </div>
-          <div>
-            <h3 className="text-xl sm:text-2xl font-semibold text-white mb-4">Get Updates!</h3>
-            <form className="flex flex-col sm:flex-row gap-2">
-              <Input 
-                type="email" 
-                placeholder="Email Address" 
-                className="flex-grow bg-white/20 border-none text-white placeholder-white/70"
-                aria-label="Email Address"
-              />
-              <Button variant="secondary" className="w-full sm:w-auto bg-purple-500">Send Now</Button>
-            </form>
-          </div>
+          {showInfo && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <CreditCard size={20} className="mr-2 text-gray-500" />
+                  <span>Card name</span>
+                </div>
+                <span className="font-medium">{cardDetails.cardName}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <CreditCard size={20} className="mr-2 text-gray-500" />
+                  <span>Card Number</span>
+                </div>
+                <span className="font-medium">{cardDetails.cardNumber}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Calendar size={20} className="mr-2 text-gray-500" />
+                  <span>Expiry date</span>
+                </div>
+                <span className="font-medium">{cardDetails.expiryDate}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Lock size={20} className="mr-2 text-gray-500" />
+                  <span>CVV (Security Code)</span>
+                </div>
+                <span className="font-medium">{cardDetails.cvv}</span>
+              </div>
+            </div>
+          )}
         </div>
-
-        <div className="relative w-full h-32 sm:h-48 md:h-64 mb-8">
-          <div className="absolute bottom-0 left-0 w-1/3 h-full bg-yellow-200 rounded-full"></div>
-          <div className="absolute top-0 right-0 w-1/4 h-3/4 bg-purple-400"></div>
-          <div className="absolute bottom-0 right-0 w-1/5 h-1/3 bg-blue-300 rounded-full"></div>
-        </div>
-
-        <nav className="flex flex-wrap justify-center gap-4 text-sm text-gray-500 mb-4">
-          <a href="#" className="hover:text-gray-700">About</a>
-          <a href="#" className="hover:text-gray-700">Contact</a>
-          <a href="#" className="hover:text-gray-700">Feedback</a>
-          <a href="#" className="hover:text-gray-700">Help</a>
-        </nav>
-
-        <div className="flex justify-center gap-6">
-          <a href="#" aria-label="Share">
-            <Share2 className="text-gray-500 hover:text-gray-700" />
-          </a>
-          <a href="#" aria-label="Facebook">
-            <Facebook className="text-gray-500 hover:text-gray-700" />
-          </a>
-          <a href="#" aria-label="Twitter">
-            <Twitter className="text-gray-500 hover:text-gray-700" />
-          </a>
-          <a href="#" aria-label="LinkedIn">
-            <Linkedin className="text-gray-500 hover:text-gray-700" />
-          </a>
-        </div>
-      </div>
+      </main>
     </div>
   )
 }
