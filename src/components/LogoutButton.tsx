@@ -31,7 +31,7 @@ export default function LogoutButton() {
       disabled={isLoading}
       variant="ghost"
       size="sm"
-      className="text-gray-400 hover:text-white"
+      className="text-red-500 hover:text-white ml-1"
     >
       {isLoading ? 'Logging out...' : <LogOut className="h-5 w-5" />}
     </Button>

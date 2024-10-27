@@ -6,11 +6,15 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { AddCardModal } from "@/components/AddCardModal"
 import { EditCardModal } from "@/components/EditCardModal"
-import { Bell, Trash2, Pencil, ChevronLeft, ChevronRight, Plus } from "lucide-react"
+import { Bell, Trash2, Pencil, ChevronLeft, ChevronRight, Plus, Banknote, HelpCircle, Calendar } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { UserType } from "@/app/profile/page"
 import Image from "next/image"
 import { motion } from "framer-motion"
+import { Card, CardContent } from "@/components/ui/card"
+import { Lock } from "lucide-react"
+import { format } from "date-fns"
+
 
 export interface CardType {
   _id: string;
@@ -38,6 +42,7 @@ const CardDisplay = ({ card, isActive }: { card: CardType; isActive: boolean }) 
   }
 
   const cardStyle = getCardStyle(card.cardName)
+
 
   return (
     <motion.div 
@@ -173,6 +178,10 @@ export default function CardsPage() {
 
   const totalOutstanding = cards.reduce((acc, card) => acc + card.outstandingAmount, 0)
   // const totalCreditLimit = cards.reduce((acc, card) => acc + card.cardLimit, 0)
+  const formattedBillingDate = cards[activeCardIndex]?.billingDate
+    ? format(new Date(cards[activeCardIndex]?.billingDate), 'dd MMM')
+    : '**/99';
+
   
 
   const changeActiveCard = useCallback((direction: 'next' | 'prev') => {
@@ -241,37 +250,80 @@ export default function CardsPage() {
           ))}
         </div>
 
-        <div className="flex items-center">
+        <div className="flex items-center mb-6 justify-between gap-2">
+          <Button
+            className='bg-gray-700 hover:bg-gray-600 p-8 rounded-xl'  
+          >
+            <div className='flex flex-col items-center'>
+              <Banknote className='h-4 w-4' />
+              <span>Pay</span>
+            </div>
+
+          </Button>
           <Button 
             onClick={() => setIsAddCardModalOpen(true)} 
+            className="bg-gradient-to-tr from-emerald-500 via-emerald-400 to-emerald-300 hover:from-emerald-600 hover:to-emerald-400 p-8 rounded-xl"
+          >
+            <div className="flex items-center flex-col">
+              <Plus className="h-4 w-4" />
+              <span>Add</span>
+            </div>
+          </Button>
+          <Button 
             className="bg-gray-700 hover:bg-gray-600 p-8 rounded-xl"
           >
-            <Plus className="h-4 w-4" />
-            Add
+            <div className="flex items-center flex-col ">
+              <HelpCircle className="h-4 w-4" />
+              <span>More</span>
+            </div>
           </Button>
         </div>
 
+        
         {cards[activeCardIndex] && (
-          <div className="bg-gray-800 rounded-lg p-4 shadow-md mb-4">
-            <h3 className="text-lg font-semibold mb-2">{cards[activeCardIndex].cardName}</h3>
-            <p className="text-sm mb-2">Credit Limit: ₹{cards[activeCardIndex].cardLimit.toLocaleString()}</p>
-            <p className="text-sm mb-2">Due Date: {new Date(cards[activeCardIndex].billingDate).toLocaleDateString()}</p>
-            <div className="flex justify-end gap-2 mt-4">
-              <Button onClick={() => handleEditCard(cards[activeCardIndex])} size="sm" variant="outline">
-                <Pencil className="h-4 w-4 mr-2" /> Edit
-              </Button>
-              <Button onClick={() => handleDeleteCard(cards[activeCardIndex]._id)} size="sm" variant="outline" className="text-red-500">
-                <Trash2 className="h-4 w-4 mr-2" /> Delete
-              </Button>
+          <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">SHORT DETAILS</h2>
+              <span className="text-sm text-emerald-500">{cards[activeCardIndex]?.cardName}</span>
             </div>
-          </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <Lock className="h-5 w-5 mr-2 text-gray-500" />
+                  <span>CVV</span>
+                </div>
+                <span className="font-semibold">{cards[activeCardIndex]?.cvv || '***'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <Calendar className="h-5 w-5 mr-2 text-gray-500" />
+                  <span>Due Date</span>
+                </div>
+                <span className="font-semibold">{formattedBillingDate}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <Calendar className="h-5 w-5 mr-2 text-gray-500" />
+                  <span>Available</span>
+                </div>
+                <span className="font-semibold">₹{cards[activeCardIndex]?.cardLimit - cards[activeCardIndex]?.outstandingAmount || 'N/A'}</span>
+              </div>
+            </div>
+            <div className="flex gap-4 mt-6">
+              <Button 
+                onClick={() => handleEditCard(cards[activeCardIndex])} 
+                className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white"
+              >Edit</Button>
+              <Button 
+                onClick={() => handleDeleteCard(cards[activeCardIndex]._id)} 
+                className="flex-1 bg-gray-800 hover:bg-gray-900 text-white"
+              >Delete</Button>
+            </div>
+            </CardContent>
+          </Card>
         )}
-        <Button 
-          onClick={() => setIsAddCardModalOpen(true)} 
-          className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600"
-        >
-          <Plus className="mr-2 h-4 w-4" /> Add New Card
-        </Button>
+        
       </main>
 
       {/* Modals */}

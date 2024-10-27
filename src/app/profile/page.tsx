@@ -23,7 +23,7 @@ import BottomNavigation from "@/components/BottomNavigation"
 import FileUploader from "@/components/FileUploader"
 import { UserFormDefaultValues } from "../../../constants"
 import { Progress } from "@/components/ui/progress"
-
+import LogoutButton from "@/components/LogoutButton"
 
 
 export interface UserType {
@@ -188,12 +188,9 @@ export default function ProfilePage() {
 
           <div className='border-b border-emerald-900 mt-4'/>
 
-          <div 
-            className='flex flex-row items-center gap-2 mt-6 ml-5 mb-2 text-red-500 cursor-pointer'
-            onClick={logout}
-          >
-            <LogOut className='w-4 h-4 text-red-500'/>
-            Logout
+          <div className='text-md text-red-500 items-center flex flex-row mt-2'>
+            <LogoutButton />
+            <span className='text-red-500'>Logout</span>
           </div>
           
           {/* <div className='border-b border-emerald-900 mt-5'/> */}
