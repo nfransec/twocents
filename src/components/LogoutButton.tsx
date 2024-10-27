@@ -31,9 +31,12 @@ export default function LogoutButton() {
       disabled={isLoading}
       variant="ghost"
       size="sm"
-      className="text-red-500 hover:text-white ml-1"
+      className="text-red-500 hover:text-white ml-1 text-md"
     >
-      {isLoading ? 'Logging out...' : <LogOut className="h-5 w-5" />}
+      <div className='flex flex-row items-center gap-2 mt-2'>
+      <span>{isLoading ? 'Logging out...' : <LogOut className="h-5 w-5" />}</span>
+      <span> Logout</span>
+      </div>
     </Button>
   )
 }

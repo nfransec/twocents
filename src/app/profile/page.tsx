@@ -10,21 +10,8 @@ import * as z from "zod"
 import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Icons } from "@/components/ui/icons"
-import { Input } from "@/components/ui/input"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Switch } from "@/components/ui/switch"
-import { Bell, CreditCard, FileText, HelpCircle, Home, LogOut, User, QrCode, ChevronRight, ChevronLeft, Pencil, Settings, Banknote, PiggyBank, PiggyBankIcon } from "lucide-react"
-import CustomSidebar from "@/components/customSidebar"
-import CustomFormField from "@/components/CustomFormField"
-import { FormFieldType } from "@/components/forms/UserForm"
-import BottomNavigation from "@/components/BottomNavigation"
-import FileUploader from "@/components/FileUploader"
-import { UserFormDefaultValues } from "../../../constants"
-import { Progress } from "@/components/ui/progress"
+import { User, ChevronRight, ChevronDown, Bell, CreditCard, Banknote, ChevronLeft } from "lucide-react"
 import LogoutButton from "@/components/LogoutButton"
-
 
 export interface UserType {
   _id: string
@@ -34,7 +21,6 @@ export interface UserType {
   username: string
   profilePicture: string
 }
-
 
 const userFormSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
@@ -56,17 +42,21 @@ export default function ProfilePage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState<UserType | null>(null)
+  const [expandedSection, setExpandedSection] = useState<string | null>(null)
 
   const userForm = useForm<z.infer<typeof userFormSchema>>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
-      ...UserFormDefaultValues,
       fullName: "",
       email: "",
       username: "",
       phoneNumber: "",
     },
   })
+
+  const toggleExpand = (section: string) => {
+    setExpandedSection(prev => (prev === section ? null : section))
+  }
 
   const handleError = (error: unknown) => {
     if (axios.isAxiosError(error)) {
@@ -84,7 +74,7 @@ export default function ProfilePage() {
   }
 
   const getUserDetails = useCallback(async () => {
-    if (user) return; // Add this line to prevent unnecessary calls
+    if (user) return;
     setIsLoading(true)
     try {
       const res = await axios.get('/api/users/me')
@@ -102,60 +92,29 @@ export default function ProfilePage() {
     } finally {
       setIsLoading(false)
     }
-  }, [user, userForm, handleError])
+  }, [user, userForm])
 
   useEffect(() => {
     getUserDetails()
   }, [getUserDetails])
 
-  const onSubmitUserForm = async (values: z.infer<typeof userFormSchema>) => {
-    setIsLoading(true)
-    try {
-      await axios.put('/api/users/update', values)
-      toast.success("Profile updated successfully")
-    } catch (error) {
-      handleError(error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const logout = async () => {
-    setIsLoading(true)
-    try {
-      await axios.get('/api/users/logout')
-      toast.success('Logout successful')
-      router.push('/login')
-    } catch (error) {
-      handleError(error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const progressValue = (15000 / 20000) * 100;
-
   return (
-    <div className='flex flex-col text-white bg-[#1c1c28] p-4 sm:p-6 rounded-3xl max-w-6xl mx-auto'>
+    <div className='flex flex-col text-white bg-[#1c1c28] p-4 sm:p-6 max-w-6xl mx-auto min-h-screen'>
+      <header className="p-4 flex justify-between items-center">
+        <ChevronLeft className="w-4 h-4" />
+        <h1 className="text-xl font-bold">My Profile</h1>
+        <Bell className="w-4 h-4" />
+        
+      </header>
       <main className='flex-1 overflow-y-auto'>
         <div className='max-w-md mx-auto px-2 py-2'>
-          <header className='flex justify-between items-center mb-6'>
-            <span className='flex items-center gap-2'>
-              <ChevronLeft className='w-4 h-4 text-green-500'/>
-              <h1 className='text-14-regular'>My Profile</h1>
-            </span>
-            <QrCode className='w-6 h-6 text-gray-600' />
-          </header>
 
           <div className='flex flex-row items-center gap-4 mb-4'>
-            <Image src='/assets/icons/user2.svg' alt='user' width={50} height={50} className='rounded-full mb-2 bg-gray-700'/>
+            <Image src='https://github.com/shadcn.png' alt='user' width={50} height={50} className='rounded-full mb-2 bg-gray-700'/>
             <div className='flex flex-row items-center justify-between flex-grow'>
               <div className='flex flex-col'>
                 <h2 className='text-16-regular'>{user?.fullName || 'N/A'}</h2>
                 <p className='text-14-regular text-green-500'>{user?.username || 'N/A'}</p>
-              </div>
-              <div className='border-gray-800 border rounded-full p-2'>
-                <Pencil className='w-4 h-4 text-gray-400'/>
               </div>
             </div>
           </div>
@@ -163,163 +122,126 @@ export default function ProfilePage() {
           <div className='border-b border-emerald-900 mb-4'/>
 
           <div className='space-y-4'>
-            {[
-              { icon: User, label: 'Personal Information' },
-              { icon: Bell, label: 'Notifications' },
-              { icon: CreditCard, label: 'Card Settings' },
-              { icon: Banknote, label: 'Bank Accounts' },
-              { icon: HelpCircle, label: 'Consent and Privacy' },
-              { icon: Settings, label: 'Account Settings' },
-
-            ].map((item, index) => (
-              <Button
-                key={index}
-                variant='ghost'
-                className='text-gray-300 hover:bg-emerald-900 w-full justify-between'
-              >
-                <div className='flex items-center gap-2'>
-                  <item.icon className='h-5 w-5 text-gray-400' />
-                  {item.label}
-                </div>
+            <Button
+              variant='ghost'
+              className='text-gray-300 w-full justify-between'
+              onClick={() => toggleExpand('personalInfo')}
+            >
+              <div className='flex items-center gap-2'>
+                <User className='h-5 w-5 text-gray-400' />
+                Personal Information
+              </div>
+              {expandedSection === 'personalInfo' ? (
+                <ChevronDown className='h-4 w-4 text-gray-400' />
+              ) : (
                 <ChevronRight className='h-4 w-4 text-gray-400' />
-              </Button>
-            ))}
+              )}
+            </Button>
+            {expandedSection === 'personalInfo' && (
+              <div className="text-sm transition-all duration-300 ease-in-out bg-[#1c1c28] p-4 rounded-md flex flex-col gap-2">
+                <p className="text-gray-500 mb-2">Full Name: <span className="float-right text-emerald-500">{user?.fullName || 'N/A'}</span></p>
+                <p className="text-gray-500 mb-2">Email: <span className="float-right text-emerald-500">{user?.email || 'N/A'}</span></p>
+                <p className="text-gray-500 mb-2">Gender: <span className="float-right text-emerald-500">Prefer not to say</span></p>
+                <p className="text-gray-500 mb-2">Phone Number: <span className="float-right text-emerald-500">{user?.phoneNumber || 'N/A'}</span></p>
+              </div>
+            )}
+
+            <Button
+              variant='ghost'
+              className='text-gray-300 w-full justify-between'
+              onClick={() => toggleExpand('notifications')}
+            >
+              <div className='flex items-center gap-2'>
+                <Bell className='h-5 w-5 text-gray-400' />
+                Notifications
+              </div>
+              {expandedSection === 'notifications' ? (
+                <ChevronDown className='h-4 w-4 text-gray-400' />
+              ) : (
+                <ChevronRight className='h-4 w-4 text-gray-400' />
+              )}
+            </Button>
+            {expandedSection === 'notifications' && (
+              <div className="text-sm transition-all duration-300 ease-in-out bg-[#1c1c28] p-4">
+                <p className="text-emerald-500 mb-4">No new notifications</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-gray-500">Enable Notifications</p>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="sr-only peer" checked />
+                    <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500"></div>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            <Button
+              variant='ghost'
+              className='text-gray-300 w-full justify-between'
+              onClick={() => toggleExpand('cardSettings')}
+            >
+              <div className='flex items-center gap-2'>
+                <CreditCard className='h-5 w-5 text-gray-400' />
+                Card Settings
+              </div>
+              {expandedSection === 'cardSettings' ? (
+                <ChevronDown className='h-4 w-4 text-gray-400' />
+              ) : (
+                <ChevronRight className='h-4 w-4 text-gray-400' />
+              )}
+            </Button>
+            {expandedSection === 'cardSettings' && (
+              <div className="text-sm transition-all duration-300 ease-in-out bg-[#1c1c28] p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-gray-500">Allow Card Number</p>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="sr-only peer" checked />
+                    <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500"></div>
+                  </label>
+                </div>
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-gray-500">Allow CVV</p>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="sr-only peer" checked />
+                    <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500"></div>
+                  </label>
+                </div>
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-gray-500">Allow Debit Cards</p>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="sr-only peer" />
+                    <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500"></div>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            <Button
+              variant='ghost'
+              className='text-gray-300 w-full justify-between'
+              onClick={() => toggleExpand('bankAccounts')}
+            >
+              <div className='flex items-center gap-2'>
+                <Banknote className='h-5 w-5 text-gray-400' />
+                Bank Accounts
+              </div>
+              {expandedSection === 'bankAccounts' ? (
+                <ChevronDown className='h-4 w-4 text-gray-400' />
+              ) : (
+                <ChevronRight className='h-4 w-4 text-gray-400' />
+              )}
+            </Button>
+            {expandedSection === 'bankAccounts' && (
+              <div className="text-sm transition-all duration-300 ease-in-out bg-[#1c1c28] p-4">
+                <p className="text-emerald-500">No bank accounts connected</p>
+              </div>
+            )}
           </div>
 
-          <div className='border-b border-emerald-900 mt-4'/>
+          <div className='border-b border-emerald-900 mt-4 mb-4'/>
 
-          <div className='text-md text-red-500 items-center flex flex-row mt-2'>
-            <LogoutButton />
-            <span className='text-red-500'>Logout</span>
-          </div>
-          
-          {/* <div className='border-b border-emerald-900 mt-5'/> */}
-
+          <LogoutButton />
         </div>
       </main>
-      {/* <div className='mb-40' /> */}
     </div>
   )
 }
-
-// const Profile = () => {
-//   return (
-//     <div className="flex flex-col min-h-screen text-white pb-16 md:pb-0">
-//     <div className="flex-1 overflow-auto px-4 md:px-6 lg:px-8">
-//         <main className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-//           <div className="sm:px-0">
-//             <div className="flex flex-col md:flex-row gap-6">
-//               {/* Profile Card */}
-//               <Card className="flex-1 border-green-500">
-//                 <CardHeader>
-//                   {/* <CardTitle>My profile <span className='text-green-300'> | </span> {user?.fullName.split(' ')[0]}</CardTitle> */}
-//                 </CardHeader>
-//                 <CardContent>
-//                   <div className="flex flex-col items-center mb-6">
-//                     <Image
-//                       src={user?.profilePicture || "/assets/icons/user2.svg"}
-//                       alt="Profile"
-//                       width={200}
-//                       height={200}
-//                       className="rounded-full mb-4"
-//                     />
-//                   </div>
-//                   <Form {...userForm}>
-//                     <form onSubmit={userForm.handleSubmit(onSubmitUserForm)} className="space-y-4">
-
-//                       <CustomFormField
-//                           fieldType={FormFieldType.INPUT}
-//                           control={userForm.control}
-//                           name="fullName"
-//                           placeholder="John Doe"
-//                           iconSrc="/assets/icons/user.svg"
-//                           iconAlt="user"
-//                       />
-
-//                       <CustomFormField
-//                         fieldType={FormFieldType.INPUT}
-//                         control={userForm.control}
-//                         name="username"
-//                         placeholder="johndoe"
-//                         iconSrc="/assets/icons/username.svg"
-//                         iconAlt="user"
-//                         description="This is your unique username on the platform."
-//                       />
-
-//                       <CustomFormField
-//                           fieldType={FormFieldType.INPUT}
-//                           control={userForm.control}
-//                           name="email"
-//                           placeholder="johndoe@gmail.com"
-//                           iconSrc="/assets/icons/email2.svg"
-//                           iconAlt="email"
-//                       />
-        
-//                       {/* <CustomFormField
-//                           fieldType={FormFieldType.PHONE_INPUT}
-//                           control={userForm.control}
-//                           name="phoneNumber"
-//                           placeholder="(555) 123-4567"
-//                       /> */}
-                    
-                      
-//                       <div className="mt-10">
-//                         <CustomFormField
-//                           fieldType={FormFieldType.SKELETON}
-//                           control={userForm.control}
-//                           name='bankStatement'
-//                           label='Upload Your Bank Statement'
-//                           renderSkeleton={(field) => (
-//                             <FormControl>
-//                               <FileUploader files={field.value} onChange={field.onChange} />
-//                             </FormControl>
-//                           )}
-//                         />
-
-//                         <section className='mt-4 space-y-6'>
-//                           <div className='mb-9 space-y-1 flex flex-col gap-4'>
-//                             <h2 className='text-14-bold'>Consent and Privacy</h2>
-//                             <CustomFormField
-//                               fieldType={FormFieldType.CHECKBOX}
-//                               control={userForm.control}
-//                               name='privacyConsent'
-//                               label='I agree to the terms and conditions and consent to the processing of my personal data in accordance with the Privacy Policy.'
-//                             />
-
-//                             <CustomFormField 
-//                               fieldType={FormFieldType.CHECKBOX}
-//                               control={userForm.control}
-//                               name='acknowledgementConsent'
-//                               label='I acknowledge that I have read and understood the above consent and privacy policy.'
-//                             />
-//                           </div>
-//                         </section>
-
-//                         <div className="flex flex-row space-x-4 mt-6 justify-between">
-//                           <Button type="submit" className="w-full bg-green-500" disabled={isLoading}>
-//                             {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
-//                             Save and Continue
-//                           </Button>
-//                           {/* <Button
-//                             type="button"
-//                             className="w-full bg-red-500 text-white"
-//                             onClick={logout}
-//                             disabled={isLoading}
-//                           >
-//                             {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
-//                             Logout
-//                           </Button> */}
-//                         </div>
-
-//                       </div>
-//                     </form>
-//                   </Form>
-//                 </CardContent>
-//               </Card>
-//             </div>
-//           </div>
-//         </main>
-//       </div>
-//       </div>
-//   )
-// }

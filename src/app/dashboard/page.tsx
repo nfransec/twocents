@@ -1,19 +1,13 @@
 'use client'
 
 import React, { useCallback, useEffect, useState } from 'react'
-import { Bell, Home, BarChart2, RefreshCcw, Clock, CreditCard, ChevronRight, ChevronDown, Plus } from 'lucide-react'
+import { Bell, Home, BarChart2, RefreshCcw, Clock, CreditCard, ChevronRight, ChevronDown, Plus, ChevronLeft } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useRouter } from "next/navigation"
 
-// const NavItem = ({ icon, label, active = false }: { icon: React.ReactNode, label: string, active: boolean }) => (
-//   <Button variant={active ? "secondary" : "ghost"} className={`flex items-center gap-2 ${active ? 'bg-[#e9e75a] text-black' : 'text-white'}`}>
-//     {icon}
-//     <span className="hidden sm:inline">{label}</span>
-//   </Button>
-// )
 export interface UserType {
     _id: string
     fullName: string
@@ -98,29 +92,12 @@ export default function DashboardPage() {
   const totalDue = cards.reduce((acc, card) => acc + card.outstandingAmount, 0);
 
   return (
-    <div className="bg-[#1c1c28] text-white p-4 sm:p-6 rounded-3xl max-w-6xl mx-auto">
+    <div className="flex flex-col bg-[#1c1c28] text-white min-h-screen">
 
-      <header className="flex flex-row justify-between items-center mb-6 gap-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#00ffbd] rounded-full"></div>
-          <span className="text-xl font-bold">{user?.fullName.split(' ')[0]} <span className='text-green-300'>|</span> Dashboard</span>
-        </div>
-        {/* <nav className="flex gap-2 sm:gap-4 overflow-x-auto w-full sm:w-auto">
-          <NavItem icon={<Home size={18} />} label="Home" active />
-          <NavItem icon={<RefreshCcw size={18} />} label="Transaction" active={false} />
-          <NavItem icon={<Clock size={18} />} label="Payment" active={false} />
-          <NavItem icon={<CreditCard size={18} />} label="Cards" active={false} />
-        </nav> */}
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon">
-            <Bell size={18} />
-          </Button>
-          <Avatar>
-            <AvatarImage src="https://github.com/shadcn.png" />
-            <AvatarFallback>TC</AvatarFallback>
-          </Avatar>
-          <span className="hidden sm:inline text-[#00ffbd] font-bold">{user?.fullName}</span>
-        </div>
+      <header className="p-4 flex justify-between items-center">
+          <ChevronLeft className="w-4 h-4" />
+          <h1 className="text-xl font-bold">Dashboard</h1>
+          <Bell className="w-4 h-4" />
       </header>
 
       <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -152,7 +129,7 @@ export default function DashboardPage() {
             <div className="space-y-6">
               <div className="bg-[#252836] rounded-3xl p-4 sm:p-6">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-[#00ffbd] text-xl sm:text-2xl font-bold">+₹ 427,230.82</span>
+                  <span className="text-[#00ffbd] text-xl sm:text-2xl font-bold">+₹ 9,99,999.99</span>
                   <Button size="sm" className="bg-[#2f3142]">+12%</Button>
                 </div>
                 <p className="text-gray-400 text-sm sm:text-base">Income this month</p>
@@ -167,29 +144,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-        {/* <div className="bg-[#252836] rounded-3xl p-4 sm:p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg sm:text-xl font-bold">Budget</h2>
-            <Button variant="ghost" className="text-gray-400 text-sm sm:text-base">
-              May 2024 <ChevronDown size={16} />
-            </Button>
-          </div>
-          <div className="h-48 sm:h-64 flex items-end justify-between gap-2 sm:gap-4 mt-6 sm:mt-10">
-            {['1 may', '8 may', '15 may', '22 may', '29 may'].map((date) => (
-              <div key={date} className="flex-1">
-                <div className="bg-orange-700 h-24 sm:h-32 rounded-t-lg"></div>
-                <div className="bg-blue-300 h-12 sm:h-16 rounded-t-lg -mt-2 sm:-mt-4"></div>
-                <div className="bg-purple-500 h-16 sm:h-24 rounded-t-lg -mt-2 sm:-mt-4"></div>
-                <p className="text-center text-xs mt-1 sm:mt-2">{date}</p>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-wrap justify-between mt-4 text-xs sm:text-sm">
-            <span className="flex items-center gap-2"><span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-orange-700"></span> Income</span>
-            <span className="flex items-center gap-2"><span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-300"></span> Spent</span>
-            <span className="flex items-center gap-2"><span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-purple-500"></span> Savings</span>
-          </div>
-        </div> */}
       </main>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">

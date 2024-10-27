@@ -8,15 +8,6 @@ export default function LoginPage() {
         <div className='flex h-screen max-h-screen'>
             <section className='remove-scrollbar container my-auto'>
                 <div className='sub-container max-w-[496px]'>
-                    <div className='flex justify-center items-center'>
-                        <Image 
-                            src='/assets/icons/2c.png'
-                            height={2000}
-                            width={2000}
-                            alt='TwoCent'
-                            className='mb-2 h-15 w-fit justify-center items-center'
-                        />
-                    </div>
                     <LoginForm />
 
                     <div className='flex flex-col gap-2 mt-8 justify-center items-center'>
@@ -29,12 +20,6 @@ export default function LoginPage() {
                                 <span className='font-bold'> Sign Up</span>
                             </Link>
                         </p>
-                    </div>
-                    <div className='text-14-regular mt-14 flex justify-between'>
-                        <p className='justify-items-end text-dark-600 xl:text-left'>© 2024 TwoCent</p>
-                        <Link href='/?admin=true' className='text-green-500'>
-                            Admin
-                        </Link>
                     </div>
                 </div>
             </section>

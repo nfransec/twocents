@@ -74,7 +74,7 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 bg-[#1c1c28] min-h-screen">
       <h1 className="text-2xl font-semibold text-white mb-6">Search Your Cards</h1>
       
       <Form {...form}>
@@ -84,7 +84,7 @@ export default function SearchPage() {
             control={form.control}
             name="query"
             label="Search"
-            placeholder="Enter card name or bank"
+            placeholder="Enter card or bank name"
             iconSrc="/assets/icons/search.svg"
             iconAlt="search"
           />

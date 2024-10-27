@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
         }
 
        
-        const token = jwt.sign(tokenData, process.env.NEXT_PUBLIC_TOKEN_SECRET!, {expiresIn: "1h"});
+        const token = jwt.sign(tokenData, process.env.NEXT_PUBLIC_TOKEN_SECRET!, {expiresIn: "365d"});
 
         const response = NextResponse.json({
             message: 'Login successful',
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
             httpOnly: true, 
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 42600, // 12 hour
+            maxAge: 365 * 24 * 60 * 60,
         });
 
         if (user.isAdmin) {

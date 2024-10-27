@@ -53,7 +53,7 @@ export function LoginForm() {
       await axios.post('/api/users/login', values)
       toast.success("Login successful")
       // router.push('/profile')
-      window.location.href = '/profile';
+      window.location.href = '/dashboard';
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         toast.error(error.response.data.error)
@@ -70,15 +70,15 @@ export function LoginForm() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 space-y-6">
             <section className="mb-12 space-y-4">
               <h1 className="header text-white text-center">Welcome back 🙏</h1>
-              <p className="text-dark-700 text-center">Enter your email and secret to login.</p>
+              <p className="text-dark-700 text-center">Enter your email and pwd to login.</p>
             </section>
             
             <CustomFormField
               fieldType={FormFieldType.INPUT}
               control={form.control}
               name="email"
-              label="Email"
-              placeholder="johndoe@gmail.com"
+              label=""
+              placeholder="Enter your email"
               iconSrc="/assets/icons/email2.svg"
               iconAlt="email"
             />
@@ -87,7 +87,7 @@ export function LoginForm() {
               fieldType={FormFieldType.PASSWORD_INPUT}
               control={form.control}
               name="password"
-              label="Password"
+              label=""
               placeholder="Enter your password"
               iconSrc="/assets/icons/lock.svg"
               iconAlt="password"

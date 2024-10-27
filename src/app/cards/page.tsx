@@ -201,6 +201,7 @@ export default function MobileCardsPage() {
         <ChevronLeft className="w-4 h-4" />
         <h1 className="text-xl font-bold">My Cards</h1>
         <Bell className="w-4 h-4" />
+        
       </header>
 
       <main className="flex-1 overflow-hidden px-4">

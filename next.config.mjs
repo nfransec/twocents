@@ -7,6 +7,9 @@ const nextConfig = withPWA({
   register: true,
   skipWaiting: true,
 })({
+  images: {
+    domains: ['github.com'], 
+  },
   // Your existing Next.js config here
 });
 
