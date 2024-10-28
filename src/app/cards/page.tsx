@@ -79,6 +79,7 @@ export default function MobileCardsPage() {
   const [editingCard, setEditingCard] = useState<CardType | null>(null)
   const [activeCardIndex, setActiveCardIndex] = useState(0)
   const [isCardExpanded, setIsCardExpanded] = useState(false);
+  const [isTopCardExpanded, setIsTopCardExpanded] = useState(false);
 
   useEffect(() => {
     fetchCards()
@@ -195,6 +196,14 @@ export default function MobileCardsPage() {
     setIsCardExpanded(!isCardExpanded);
   };
 
+  const topSpendingCard = cards.reduce((prev, current) => {
+    return (prev.outstandingAmount > current.outstandingAmount) ? prev : current;
+  }, cards[0]);
+
+  const toggleTopCardExpansion = () => {
+    setIsTopCardExpanded(!isTopCardExpanded);
+  };
+
   return (
     <div className="flex flex-col bg-[#1c1c28] text-white min-h-screen">
       <header className="p-4 flex justify-between items-center">
@@ -267,7 +276,7 @@ export default function MobileCardsPage() {
         </div>
         
         {cards[activeCardIndex] && (
-          <Card className="bg-gray-800 text-white">
+          <Card className="border-none bg-gradient-to-r from-slate-800 to-slate-700 text-white">
             <CardContent className="p-4">
               <motion.div
                 className="flex justify-between items-center mb-4 cursor-pointer"
@@ -307,7 +316,7 @@ export default function MobileCardsPage() {
                         <Banknote className="h-5 w-5 mr-2 text-gray-400" />
                         <span>Available</span>
                       </div>
-                      <span className="font-semibold">₹{(cards[activeCardIndex].cardLimit - cards[activeCardIndex].outstandingAmount).toLocaleString()}</span>
+                      <span className="font-semibold">₹ {(cards[activeCardIndex].cardLimit - cards[activeCardIndex].outstandingAmount).toLocaleString()}</span>
                     </div>
                   </div>
                   <div className="flex gap-2 mt-4">
@@ -325,6 +334,38 @@ export default function MobileCardsPage() {
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete
                     </Button>
+                  </div>
+                </motion.div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {topSpendingCard && (
+          <Card className="border-none bg-gradient-to-r from-slate-800 to-slate-700 text-white mt-4">
+            <CardContent className="p-4">
+              <motion.div
+                className="flex justify-between items-center mb-4 cursor-pointer"
+                onClick={toggleTopCardExpansion}
+                initial={{ height: "auto" }}
+                animate={{ height: isTopCardExpanded ? "5vh" : "auto" }}
+                transition={{ duration: 0.5 }}
+              >
+                <h2 className="text-md font-semibold">Top Card 🎉</h2>
+              </motion.div>
+              {isTopCardExpanded && (
+                <motion.div
+                  className=""
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                  style={{ maxHeight: '50vh' }}
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-3xl font-bold">{topSpendingCard.cardName}</h2>
+                      <span className="text-2xl text-emerald-400">₹ {topSpendingCard.outstandingAmount.toLocaleString()}</span>
+                    </div>
                   </div>
                 </motion.div>
               )}

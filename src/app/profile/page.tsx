@@ -99,7 +99,7 @@ export default function ProfilePage() {
   }, [getUserDetails])
 
   return (
-    <div className='flex flex-col text-white bg-[#1c1c28] p-4 sm:p-6 max-w-6xl mx-auto min-h-screen'>
+    <div className='flex flex-col text-white bg-[#1c1c28] sm:p-6 max-w-6xl mx-auto min-h-screen'>
       <header className="p-4 flex justify-between items-center">
         <ChevronLeft className="w-4 h-4" />
         <h1 className="text-xl font-bold">My Profile</h1>
