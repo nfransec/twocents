@@ -23,13 +23,6 @@ export default function LoginPage() {
                     </div>
                 </div>
             </section>
-            <Image 
-                src='/assets/images/register-img.png'
-                height={1000}
-                width={1000}
-                alt='TwoCent'
-                className="side-img max-w-[50%]"
-            />
         </div>
     )
 }

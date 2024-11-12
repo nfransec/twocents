@@ -12,7 +12,10 @@ const cardSchema = z.object({
   billingDate: z.string(),
   outstandingAmount: z.number(),
   imageUrl: z.string().optional(),
-  cardNumber: z.string().optional(), // Add this line
+  cardNumber: z.string().optional(),
+  isPaid: z.boolean().optional(),
+  paidAmount: z.number().optional(),
+  paymentDate: z.string().optional(),
 });
 
 const cardUpdateSchema = cardSchema.partial().extend({
@@ -23,6 +26,18 @@ interface JwtPayload {
   id: string;
 }
 
+interface CardUpdateData {
+  cardName?: string;
+  bankName?: string;
+  cardLimit?: number;
+  billingDate?: string;
+  outstandingAmount?: number;
+  imageUrl?: string;
+  cardNumber?: string;
+  isPaid?: boolean;
+  paidAmount?: number;
+  paymentDate?: string;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -101,7 +116,16 @@ export async function PUT(request: NextRequest) {
       const validatedData = cardUpdateSchema.parse(body);
       console.log('Validated data:', validatedData);
 
-      const { _id, ...updateData } = validatedData;
+      const { _id, isPaid, paidAmount, outstandingAmount, ...otherUpdates  } = validatedData;
+
+      const updateData: CardUpdateData = { ...otherUpdates };
+
+      if (isPaid !== undefined) {
+        updateData.isPaid = isPaid;
+        updateData.paidAmount = paidAmount ?? 0;
+        updateData.outstandingAmount = 0;
+        updateData.paymentDate = new Date().toLocaleString();
+      }
 
       const updatedCard = await Card.findOneAndUpdate(
         { _id, userId },

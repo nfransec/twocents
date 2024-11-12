@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CardType } from '@/app/cards/page';
 import { cardToBankMapping, CardName } from '@/utils/cardMappings';
+import Image from 'next/image';
 
 interface EditCardModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface EditCardModalProps {
   onEditCard: (editedCard: CardType) => void;
   card: CardType;
 }
+
 
 export function EditCardModal({ isOpen, onClose, onEditCard, card }: EditCardModalProps) {
   const [editedCard, setEditedCard] = useState<CardType>(card);
@@ -53,6 +55,7 @@ export function EditCardModal({ isOpen, onClose, onEditCard, card }: EditCardMod
             <SelectContent className='text-white bg-dark-300'>
               {Object.keys(cardToBankMapping).map((cardName) => (
                 <SelectItem key={cardName} value={cardName}>
+                  
                   {cardName}
                 </SelectItem>
               ))}

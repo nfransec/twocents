@@ -22,6 +22,9 @@ export interface CardType {
   outstandingAmount: number;
   cardNumber?: string;
   cvv?: string;
+  isPaid?: boolean;
+  paidAmount?: number;
+  paymentDate?: string;
 }
 
 const CardDisplay = ({ card, isActive, index, activeIndex }: { card: CardType; isActive: boolean; index: number; activeIndex: number }) => {
@@ -113,6 +116,10 @@ export default function MobileCardsPage() {
 
   const handleSaveEditedCard = async (editedCard: Partial<CardType>) => {
     try {
+      if (editedCard.outstandingAmount !== undefined) {
+        editedCard.isPaid = false;
+      }
+      
       const response = await axios.put(`/api/cards`, editedCard)
       setCards(cards.map(card => card._id === editedCard._id ? response.data.data : card))
       toast.success('Card updated successfully')
@@ -202,6 +209,33 @@ export default function MobileCardsPage() {
 
   const toggleTopCardExpansion = () => {
     setIsTopCardExpanded(!isTopCardExpanded);
+  };
+
+  const handlePayment = async (cardId: string, outstandingAmount: number) => {
+    if (outstandingAmount === 0) {
+      toast.success('You are all set!! No outstaning amount to pay 🎉');
+      return;
+    }
+
+    console.log('Making payment request to: ', '/api/cards');
+    const response = await fetch('/api/cards/', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ _id: cardId, isPaid: true, paidAmount: outstandingAmount }),
+    });
+
+    if (response.ok) {
+      const updatedCard = await response.json();
+      // Update the state to reflect the changes
+      setCards((prevCards) =>
+        prevCards.map((card) => (card._id === updatedCard.data._id ? updatedCard.data : card))
+      );
+    } else {
+      // Handle error
+      console.error('Payment failed');
+    }
   };
 
   return (
@@ -333,6 +367,14 @@ export default function MobileCardsPage() {
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete
+                    </Button>
+                  </div>
+                  <div className="flex justify-center">
+                    <Button
+                      className="bg-purple-700 p-2 text-md rounded mt-2 font-semibold w-full"
+                      onClick={() => handlePayment(cards[activeCardIndex]._id, cards[activeCardIndex].outstandingAmount)}
+                    >
+                      Mark as Paid
                     </Button>
                   </div>
                 </motion.div>

@@ -1,0 +1,26 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end; /* Align to the bottom */
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0; /* Start hidden */
+  transition: opacity 0.3s ease; /* Transition for overlay */
+}
+
+.modal-overlay.open {
+  opacity: 1; /* Show when open */
+}
+
+.modal-content {
+  transform: translateY(100%); /* Start off-screen */
+  transition: transform 0.3s ease; /* Smooth transition */
+  width: 100%; /* Optional: Set width to full */
+  max-width: 500px; /* Optional: Set a max width */
+}
+
+.modal-content.slide-up {
+  transform: translateY(0); /* Slide into view */
+}

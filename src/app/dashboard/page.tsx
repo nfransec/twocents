@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useState } from 'react'
-import { Bell, ChevronRight, ChevronLeft, Search, ArrowUpRight, Wallet, CreditCard, ArrowDown, ArrowUp } from 'lucide-react'
+import { Bell, ChevronRight, ChevronLeft, Search, ArrowUpRight, Wallet, CreditCard, ArrowDown, ArrowUp, ArrowRight } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -97,39 +97,35 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col text-foreground min-h-screen bg-[#1c1c28] text-white">
-      <div className='bg-gradient-to-r from-purple-500 to-purple-900 border-none rounded-3xl mb-6'>
-        <header className="sticky top-0 z-10 backdrop-blur">
-          <div className="container flex justify-between items-center py-2">
-            <Button variant="ghost" size="icon"><ChevronLeft className="h-4 w-4" /></Button>
-            <h1 className="text-xl font-bold">Dashboard</h1>
-            <Button variant="ghost" size="icon"><Bell className="h-4 w-4" /></Button>
-          </div>
-        </header>
-        
-          <div className="relative px-6 rounded-3xl bg-transparent">
-            <Input type="text" placeholder="Search" className="pl-8" />
-            <Search className="absolute left-8 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          </div>
-
-          <div className='px-6 mt-4 flex items-center justify-center'>
-            <h2 className='text-2xl font-bold'>Welcome back, {user?.fullName.split(' ')[0]}</h2>
-          </div>
-
-          <Card className="border-none mt-2">
-            <CardHeader>
-              <CardTitle className='flex justify-center'>Total Due</CardTitle>
-              <CardDescription className="text-dark-900 flex justify-center">Across all cards</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold mb-4 flex justify-center">₹ {totalDue.toLocaleString()}</div>
-              <Button variant="secondary" className="w-full text-black bg-white hover:bg-gradient-to-bl hover:from-gray-50 hover:to-gray-400 border-none">
-                Pay Now <ArrowUpRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
+        <div className='flex items-center justify-between p-4 bg-zinc-900'>
+            <h1 className='font-extrabold'>Manage your cards</h1>
+            <Button variant="outline" className='rounded-full hover:bg-gray-600'>Add card</Button>
         </div>
 
         <main className="flex-1 container py-2 space-y-4">
+        <div className='p-4'>
+            <h2 className='text-14-regular text-gray-200 mb-4'>SUMMARY ACROSS CARDS</h2>
+            <div className='flex flex-row gap-4'>
+                <Card className='bg-zinc-900 w-48'>
+                    <CardHeader>
+                        <CardTitle>₹ {totalDue.toLocaleString()}</CardTitle>
+                        <CardDescription>total due</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ArrowRight className='w-5 h-5' />
+                    </CardContent>
+                </Card>
+                <Card className='bg-zinc-900 w-48'>
+                    <CardHeader>
+                        <CardTitle>₹ {totalDue.toLocaleString()}</CardTitle>
+                        <CardDescription>recent spends</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ArrowRight className='w-5 h-5' />
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
           <Tabs defaultValue="overview">
             <TabsList className="grid w-full grid-cols-2 border-b-2 border-gray-200  bg-white text-black">
               <TabsTrigger value="overview" className="hover:bg-gray-300">Overview</TabsTrigger>

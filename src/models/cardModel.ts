@@ -29,10 +29,14 @@ const cardSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  isPaid: { type: Boolean, default: false },
+  paidAmount: { type: Number, default: 0 },
+  paymentDate: { type: Date },
+  lastPaidAmount: { type: Number, default: 0 },
   imageUrl: {
     type: String,
   },
-  cardNumber: { type: String }, // Add this line
+  cardNumber: { type: String },
 }, { timestamps: true });
 
 const Card = mongoose.models.Card || mongoose.model('Card', cardSchema);
