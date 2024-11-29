@@ -13,7 +13,7 @@ const nextConfig = withPWA({
         protocol: 'https',
         hostname: 'github.com',
         port: '',
-        pathname: '/',
+        pathname: '/**',
       },
     ],
   },

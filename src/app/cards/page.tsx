@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from "react"
+import { useGesture } from "react-use-gesture"
 import axios from "axios"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -81,8 +82,6 @@ export default function MobileCardsPage() {
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false)
   const [editingCard, setEditingCard] = useState<CardType | null>(null)
   const [activeCardIndex, setActiveCardIndex] = useState(0)
-  const [isCardExpanded, setIsCardExpanded] = useState(false);
-  const [isTopCardExpanded, setIsTopCardExpanded] = useState(false);
 
   useEffect(() => {
     fetchCards()
@@ -170,46 +169,21 @@ export default function MobileCardsPage() {
     }
   }, [])
 
-  const changeActiveCard = useCallback((direction: 'next' | 'prev') => {
-    setActiveCardIndex((currentIndex) => {
-      if (direction === 'next') {
-        return currentIndex === cards.length - 1 ? 0 : currentIndex + 1;
-      } else {
-        return currentIndex === 0 ? cards.length - 1 : currentIndex - 1;
-      }
-    });
+  const handleNextCard = useCallback(() => {
+    setActiveCardIndex((currentIndex) => (currentIndex + 1) % cards.length);
   }, [cards.length]);
 
-  const handleNextCard = useCallback(() => changeActiveCard('next'), [changeActiveCard]);
-  const handlePrevCard = useCallback(() => changeActiveCard('prev'), [changeActiveCard]);
+  const handlePrevCard = useCallback(() => {
+    setActiveCardIndex((currentIndex) => (currentIndex - 1 + cards.length) % cards.length);
+  }, [cards.length]);
 
   const formattedBillingDate = cards[activeCardIndex]?.billingDate
     ? format(new Date(cards[activeCardIndex]?.billingDate), 'dd MMM')
     : '**/99';
 
-  const handleCardClick = (id: string) => {
-    router.push(`/cards/${id}`);
-  };
-
-  const handleMoreClick = () => {
-    const activeCard = cards[activeCardIndex];
-    if (activeCard) {
-      router.push(`/cards/${activeCard._id}`);
-      console.log(activeCard._id);
-    }
-  };
-
-  const toggleCardExpansion = () => {
-    setIsCardExpanded(!isCardExpanded);
-  };
-
   const topSpendingCard = cards.reduce((prev, current) => {
     return (prev.outstandingAmount > current.outstandingAmount) ? prev : current;
   }, cards[0]);
-
-  const toggleTopCardExpansion = () => {
-    setIsTopCardExpanded(!isTopCardExpanded);
-  };
 
   const handlePayment = async (cardId: string, outstandingAmount: number) => {
     if (outstandingAmount === 0) {
@@ -244,7 +218,6 @@ export default function MobileCardsPage() {
         <ChevronLeft className="w-4 h-4" />
         <h1 className="text-xl font-bold">My Cards</h1>
         <Bell className="w-4 h-4" />
-        
       </header>
 
       <main className="flex-1 overflow-hidden px-4">
@@ -285,100 +258,58 @@ export default function MobileCardsPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-6 items-center">
-          <Button className="bg-gray-700 hover:bg-gray-600 p-8 rounded-xl">
-            <div className="flex flex-col items-center">
-              <Banknote className="h-4 w-4 mb-1" />
-              <span className="text-xs">Pay</span>
-            </div>
-          </Button>
-          <Button 
-            onClick={() => setIsAddCardModalOpen(true)} 
-            className="bg-gradient-to-tr from-emerald-500 via-emerald-400 to-emerald-300 hover:from-emerald-600 hover:to-emerald-400 p-8 rounded-xl"
-          >
-            <div className="flex flex-col items-center">
-              <Plus className="h-4 w-4 mb-1" />
-              <span className="text-xs">Add</span>
-            </div>
-          </Button>
-          <Button className="bg-gray-700 hover:bg-gray-600 p-8 rounded-xl">
-            <div className="flex flex-col items-center">
-              <HelpCircle className="h-4 w-4 mb-1" />
-              <span className="text-xs">More</span>
-            </div>
-          </Button>
-        </div>
-        
         {cards[activeCardIndex] && (
           <Card className="border-none bg-gradient-to-r from-slate-800 to-slate-700 text-white">
             <CardContent className="p-4">
-              <motion.div
-                className="flex justify-between items-center mb-4 cursor-pointer"
-                onClick={toggleCardExpansion}
-                initial={{ height: "auto" }}
-                animate={{ height: isCardExpanded ? "5vh" : "auto" }}
-                transition={{ duration: 0.5 }}
-              >
-                <h2 className="text-md font-semibold">More Details</h2>
-                <span className="text-sm text-emerald-400">{cards[activeCardIndex].cardName}</span>
-              </motion.div>
-              {isCardExpanded && (
-                <motion.div
-                  className="overflow-y-auto"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                  style={{ maxHeight: '50vh' }}
+              <h2 className="text-md font-semibold">More Details</h2>
+              <span className="text-sm text-emerald-400">{cards[activeCardIndex].cardName}</span>
+              <div className="space-y-4 mt-4">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <Lock className="h-5 w-5 mr-2 text-gray-400" />
+                    <span>CVV</span>
+                  </div>
+                  <span className="font-semibold">{cards[activeCardIndex].cvv || '***'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <Calendar className="h-5 w-5 mr-2 text-gray-400" />
+                    <span>Due Date</span>
+                  </div>
+                  <span className="font-semibold">{formattedBillingDate}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <Banknote className="h-5 w-5 mr-2 text-gray-400" />
+                    <span>Available</span>
+                  </div>
+                  <span className="font-semibold">₹ {(cards[activeCardIndex].cardLimit - cards[activeCardIndex].outstandingAmount).toLocaleString()}</span>
+                </div>
+              </div>
+              <div className="flex gap-2 mt-4">
+                <Button 
+                  onClick={() => handleEditCard(cards[activeCardIndex])} 
+                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white"
                 >
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
-                        <Lock className="h-5 w-5 mr-2 text-gray-400" />
-                        <span>CVV</span>
-                      </div>
-                      <span className="font-semibold">{cards[activeCardIndex].cvv || '***'}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
-                        <Calendar className="h-5 w-5 mr-2 text-gray-400" />
-                        <span>Due Date</span>
-                      </div>
-                      <span className="font-semibold">{formattedBillingDate}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
-                        <Banknote className="h-5 w-5 mr-2 text-gray-400" />
-                        <span>Available</span>
-                      </div>
-                      <span className="font-semibold">₹ {(cards[activeCardIndex].cardLimit - cards[activeCardIndex].outstandingAmount).toLocaleString()}</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 mt-4">
-                    <Button 
-                      onClick={() => handleEditCard(cards[activeCardIndex])} 
-                      className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white"
-                    >
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                    <Button 
-                      onClick={() => handleDeleteCard(cards[activeCardIndex]._id)} 
-                      className="flex-1 bg-red-500 hover:bg-red-600 text-white"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </Button>
-                  </div>
-                  <div className="flex justify-center">
-                    <Button
-                      className="bg-purple-700 p-2 text-md rounded mt-2 font-semibold w-full"
-                      onClick={() => handlePayment(cards[activeCardIndex]._id, cards[activeCardIndex].outstandingAmount)}
-                    >
-                      Mark as Paid
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+                <Button 
+                  onClick={() => handleDeleteCard(cards[activeCardIndex]._id)} 
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </div>
+              <div className="flex justify-center">
+                <Button
+                  className="bg-purple-700 p-2 text-md rounded mt-2 font-semibold w-full"
+                  onClick={() => handlePayment(cards[activeCardIndex]._id, cards[activeCardIndex].outstandingAmount)}
+                >
+                  Mark as Paid
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -386,35 +317,16 @@ export default function MobileCardsPage() {
         {topSpendingCard && (
           <Card className="border-none bg-gradient-to-r from-slate-800 to-slate-700 text-white mt-4">
             <CardContent className="p-4">
-              <motion.div
-                className="flex justify-between items-center mb-4 cursor-pointer"
-                onClick={toggleTopCardExpansion}
-                initial={{ height: "auto" }}
-                animate={{ height: isTopCardExpanded ? "5vh" : "auto" }}
-                transition={{ duration: 0.5 }}
-              >
-                <h2 className="text-md font-semibold">Top Card 🎉</h2>
-              </motion.div>
-              {isTopCardExpanded && (
-                <motion.div
-                  className=""
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                  style={{ maxHeight: '50vh' }}
-                >
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-3xl font-bold">{topSpendingCard.cardName}</h2>
-                      <span className="text-2xl text-emerald-400">₹ {topSpendingCard.outstandingAmount.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
+              <h2 className="text-md font-semibold">Top Card 🎉</h2>
+              <div className="space-y-4 mt-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-3xl font-bold">{topSpendingCard.cardName}</h2>
+                  <span className="text-2xl text-emerald-400">₹ {topSpendingCard.outstandingAmount.toLocaleString()}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}
-        
       </main>
 
       {isAddCardModalOpen && (
