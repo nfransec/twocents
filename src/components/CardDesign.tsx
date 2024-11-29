@@ -45,8 +45,11 @@ const CardDesign: React.FC<CardDesignProps> = ({ card, isFlipped, onClick, onEdi
           <p className="">Credit Limit: ₹{card.cardLimit.toLocaleString()}</p>
           <p className="">Outstanding: ₹{card.outstandingAmount.toLocaleString()}</p>
           <p className="">Billing Date: {new Date(card.billingDate).toLocaleDateString()}</p>
-          <p className="">Remaining Credit Limit: ₹{(card.cardLimit - card.paidAmount).toLocaleString()}</p>
-          <p className="">Payment Status: {card.isPaid ? `Paid on ${new Date(card.paymentDate).toLocaleDateString()}` : 'Pending'}</p>
+          <p className="">Remaining Credit Limit: ₹{(card.cardLimit - (card.paidAmount ?? 0)).toLocaleString()}</p>
+          <p className="">Payment Status: {card.isPaid && card.paymentDate ? 
+            `Paid on ${new Date(card.paymentDate).toLocaleDateString()}` : 
+            'Pending'
+          }</p>
           <div className="flex justify-end space-x-2">
             <Button onClick={(e) => { e.stopPropagation(); onEdit(card) }} size="sm" className="">
               <Pencil className="h-4 w-4" />
