@@ -11,6 +11,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/core": "^0.34.2",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-checkbox": "^1.1.2",
@@ -36,11 +37,14 @@
     "lucide-react": "^0.452.0",
     "mongoose": "^8.7.0",
     "next": "14.2.14",
+    "next-auth": "^4.24.10",
     "next-cloudinary": "^6.14.1",
     "next-pwa": "^5.6.0",
     "next-themes": "^0.3.0",
     "node-appwrite": "^14.1.0",
     "nodemailer": "^6.9.15",
+    "openai": "^4.73.1",
+    "openapi": "^1.0.1",
     "punycode": "^2.3.1",
     "react": "^18",
     "react-datepicker": "^7.4.0",
@@ -53,6 +57,7 @@
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
+    "twitter-api-v2": "^1.18.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {
