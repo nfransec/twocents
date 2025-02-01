@@ -30,64 +30,62 @@ export async function PUT(
       );
     }
 
+    // Get the current card to access its outstanding amount before updating
+    const currentCard = await Card.findById(cardId);
+    
+    if (!currentCard) {
+      return NextResponse.json(
+        { error: "Card not found" },
+        { status: 404 }
+      );
+    }
+
+    const amountPaid = currentCard.outstandingAmount; // Now safe to access
+
+    // If marking as paid, prepare payment history
     if (body.isPaid) {
-      const currentDate = new Date();
-      const billingMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-      
-      // Get the current card to access its outstanding amount before updating
-      const currentCard = await Card.findById(cardId);
-      const amountPaid = currentCard.outstandingAmount; // This is the amount that was paid
-      
+      // Create a new payment history array by combining existing and new
+      const newPaymentHistory = [
+        ...(currentCard.paymentHistory || []),
+        {
+          amount: amountPaid,
+          date: new Date(),
+          billingMonth: new Date().toISOString().slice(0, 7),
+          outstandingAfterPayment: 0
+        }
+      ];
+
+      // Update all fields including payment history
       const updatedCard = await Card.findByIdAndUpdate(
         cardId,
         {
-          $set: {
-            isPaid: true,
-            outstandingAmount: 0,
-            lastPaymentAmount: amountPaid, // Store the amount that was actually paid
-            lastPaymentDate: currentDate
-          },
-          $push: {
-            paymentHistory: {
-              amount: amountPaid, // Store the amount that was actually paid
-              date: currentDate,
-              billingMonth: billingMonth,
-              outstandingAfterPayment: 0
-            }
-          }
+          ...body,
+          paymentHistory: newPaymentHistory
         },
         { new: true }
       );
-      return NextResponse.json({ success: true, data: updatedCard });
+
+      return NextResponse.json({
+        success: true,
+        data: updatedCard,
+      });
     }
 
-    // Update other card details
+    // Regular update without payment history
     const updatedCard = await Card.findByIdAndUpdate(
       cardId,
-      { 
-        $set: {
-          cardName: body.cardName,
-          bankName: body.bankName,
-          cardLimit: body.cardLimit,
-          billingDate: body.billingDate,
-          outstandingAmount: body.outstandingAmount,
-          cardNumber: body.cardNumber,
-          cvv: body.cvv,
-          imageUrl: body.imageUrl
-        }
-      },
+      body,
       { new: true }
     );
 
     return NextResponse.json({
-      message: "Card updated successfully",
       success: true,
       data: updatedCard,
     });
   } catch (error: any) {
-    console.error("Error updating card:", error.message);
+    console.error("Error updating card:", error);
     return NextResponse.json(
-      { error: "Error updating card", details: error.message },
+      { error: error.message || "Error updating card" },
       { status: 500 }
     );
   }
