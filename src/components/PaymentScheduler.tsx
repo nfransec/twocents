@@ -13,57 +13,52 @@ interface PaymentSchedulerProps {
 }
 
 export function PaymentScheduler({ card, onUpdate }: PaymentSchedulerProps) {
-  const [isAutoPayEnabled, setIsAutoPayEnabled] = useState(card.paymentSchedule?.isAutoPayEnabled || false)
-  const [reminderDays, setReminderDays] = useState(card.paymentSchedule?.reminderDays || 5)
+  const [isAutoPayEnabled, setIsAutoPayEnabled] = useState(false)
+  const [reminderDays, setReminderDays] = useState(5)
 
   const handleScheduleUpdate = async () => {
     try {
-      const response = await axios.put(`/api/cards/${card._id}/schedule`, {
+      const response = await axios.put(`/api/cards/${card._id}`, {
+        ...card,
         paymentSchedule: {
           isAutoPayEnabled,
           reminderDays,
           reminderMethod: 'BOTH'
         }
-      });
+      })
 
       if (response.data.success) {
-        onUpdate(response.data.data);
-        toast.success('Payment schedule updated successfully');
+        onUpdate(response.data.data)
+        toast.success('Payment schedule updated')
       }
     } catch (error) {
-      console.error('Error updating payment schedule:', error);
-      toast.error('Failed to update payment schedule');
+      console.error('Error updating payment schedule:', error)
+      toast.error('Failed to update payment schedule')
     }
-  };
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <span className="text-sm">Enable Auto-Pay</span>
+        <span>Auto-pay</span>
         <Switch
           checked={isAutoPayEnabled}
           onCheckedChange={setIsAutoPayEnabled}
         />
       </div>
-
-      <div className="space-y-2">
-        <label className="text-sm">Reminder Days Before Due Date</label>
-        <select
+      <div className="flex items-center justify-between">
+        <span>Reminder days before due</span>
+        <input
+          type="number"
           value={reminderDays}
           onChange={(e) => setReminderDays(Number(e.target.value))}
-          className="w-full p-2 rounded-md bg-slate-800 border border-slate-700"
-        >
-          {[1, 2, 3, 5, 7, 10].map((days) => (
-            <option key={days} value={days}>{days} days</option>
-          ))}
-        </select>
+          className="w-16 p-1 text-black rounded border"
+          min={1}
+          max={30}
+        />
       </div>
-
-      <Button 
-        onClick={handleScheduleUpdate}
-        className="w-full bg-purple-700 hover:bg-purple-800"
-      >
-        Update Payment Schedule
+      <Button onClick={handleScheduleUpdate} className="w-full">
+        Update Schedule
       </Button>
     </div>
   )

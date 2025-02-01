@@ -5,6 +5,29 @@
   command = "npm run build"
   publish = ".next"
 
+[build.environment]
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# Add build cache configuration
+[build.processing]
+  skip_processing = false
+[build.processing.css]
+  bundle = true
+  minify = true
+[build.processing.js]
+  bundle = true
+  minify = true
+[build.processing.html]
+  pretty_urls = true
+[build.processing.images]
+  compress = true
+
+# Cache configuration
+[build.cache]
+  node_modules = "true"
+  yarn = "true"
+  build = "true"
+
 [[headers]]
   for = "/manifest.json"
   [headers.values]
