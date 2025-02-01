@@ -140,24 +140,24 @@ export default function DashboardPage() {
     }, 0);
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('/api/cards');
-        if (response.data.success) {
-          const cards = response.data.data;
-          setCards(cards);
-          const totalPayments = calculateMonthlyPayments(cards);
-          console.log('Total monthly payments calculated:', totalPayments);
-        }
-      } catch (error) {
-        console.error('Error fetching cards:', error);
-        toast.error('Failed to fetch cards');
+  const fetchData = useCallback(async () => {
+    try {
+      const response = await axios.get('/api/cards');
+      if (response.data.success) {
+        const cards = response.data.data;
+        setCards(cards);
+        const totalPayments = calculateMonthlyPayments(cards);
+        console.log('Total monthly payments calculated:', totalPayments);
       }
-    };
-
-    fetchData();
+    } catch (error) {
+      console.error('Error fetching cards:', error);
+      toast.error('Failed to fetch cards');
+    }
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const getAllPaymentHistory = (cards: CardType[]) => {
     const allPayments = cards.flatMap(card => 

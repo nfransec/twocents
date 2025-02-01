@@ -94,6 +94,14 @@ export default function ProfilePage() {
     }
   }, [user, userForm])
 
+  const handleUpdateProfile = useCallback(async (updatedProfile: Partial<UserType>) => {
+    try {
+      // ... existing code ...
+    } catch (error) {
+      handleError(error);
+    }
+  }, [handleError]);
+
   useEffect(() => {
     getUserDetails()
   }, [getUserDetails])

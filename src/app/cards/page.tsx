@@ -93,6 +93,10 @@ export default function MobileCardsPage() {
     getUserDetails()
   }, [])
 
+  useEffect(() => {
+    getUserDetails();
+  }, [getUserDetails]);
+
   const fetchCards = async () => {
     try {
       const response = await axios.get('/api/cards')
@@ -127,7 +131,7 @@ export default function MobileCardsPage() {
     console.log('Opening edit modal for card:', card); // Debug log
   };
 
-  const handleUpdateCard = async (updatedCard: CardType) => {
+  const handleUpdateCard = useCallback(async (updatedCard: CardType) => {
     try {
       // Simplify the logic: if outstanding amount is 0, card is paid; if > 0, card is unpaid
       const cardToUpdate = {
@@ -149,10 +153,9 @@ export default function MobileCardsPage() {
         toast.success('Card updated successfully');
       }
     } catch (error) {
-      console.error('Error updating card:', error);
-      toast.error('Failed to update card');
+      handleError(error);
     }
-  };
+  }, [handleError]);
 
   const handleDeleteCard = async (cardId: string) => {
     if (window.confirm('Are you sure you want to delete this card?')) {
