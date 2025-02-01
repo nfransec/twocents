@@ -76,7 +76,7 @@ const CardDisplay = ({ card, isActive, index, activeIndex }: { card: CardType; i
   )
 }
 
-export default function MobileCardsPage() {
+export default function CardsPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [currentUser, setCurrentUser] = useState<UserType | null>(null)
@@ -88,59 +88,75 @@ export default function MobileCardsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null)
 
-  useEffect(() => {
-    fetchCards()
-    getUserDetails()
-  }, [])
-
-  useEffect(() => {
-    getUserDetails();
-  }, [getUserDetails]);
+  const handleError = useCallback((error: unknown) => {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        toast.error('Session expired. Please log in again.');
+        router.push('/login');
+      } else {
+        toast.error(error.response?.data?.message || 'An error occurred');
+      }
+    } else {
+      console.error('Error:', error);
+      toast.error('An unexpected error occurred');
+    }
+  }, [router]);
 
   const fetchCards = async () => {
     try {
-      const response = await axios.get('/api/cards')
+      const response = await axios.get('/api/cards');
       if (response.data.success) {
-        setCards(response.data.data)
+        setCards(response.data.data);
       }
     } catch (error) {
-      console.error('Error fetching cards:', error)
-      toast.error('Failed to fetch cards')
+      handleError(error);
     }
-  }
+  };
+
+  const getUserDetails = async () => {
+    try {
+      const response = await axios.get('/api/user');
+      if (response.data.success) {
+        setCurrentUser(response.data.data);
+      }
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCards();
+  }, []);
+
+  useEffect(() => {
+    getUserDetails();
+  }, []);
 
   const handleAddCard = async (newCard: Omit<CardType, '_id'>) => {
     try {
-      console.log('Adding new card:', newCard); // Debug log
       const response = await axios.post('/api/cards', newCard);
-      
       if (response.data.success) {
         setCards([...cards, response.data.data]);
         setIsAddModalOpen(false);
         toast.success('Card added successfully');
       }
     } catch (error) {
-      console.error('Error adding card:', error);
-      toast.error('Failed to add card');
+      handleError(error);
     }
   };
 
   const handleEditClick = (card: CardType) => {
     setSelectedCard(card);
     setIsEditModalOpen(true);
-    console.log('Opening edit modal for card:', card); // Debug log
   };
 
   const handleUpdateCard = useCallback(async (updatedCard: CardType) => {
     try {
-      // Simplify the logic: if outstanding amount is 0, card is paid; if > 0, card is unpaid
       const cardToUpdate = {
         ...updatedCard,
-        isPaid: updatedCard.outstandingAmount === 0,  // Simple boolean check
+        isPaid: updatedCard.outstandingAmount === 0,
         paidAmount: updatedCard.outstandingAmount === 0 ? updatedCard.outstandingAmount : 0
       };
-
-      console.log('Updating card with:', cardToUpdate); // Debug log
 
       const response = await axios.put(`/api/cards/${updatedCard._id}`, cardToUpdate);
       
@@ -155,48 +171,19 @@ export default function MobileCardsPage() {
     } catch (error) {
       handleError(error);
     }
-  }, [handleError]);
+  }, [cards, handleError]);
 
   const handleDeleteCard = async (cardId: string) => {
     if (window.confirm('Are you sure you want to delete this card?')) {
       try {
-        await axios.delete(`/api/cards?_id=${cardId}`)
-        setCards(cards.filter(card => card._id !== cardId))
-        toast.success('Card deleted successfully')
+        await axios.delete(`/api/cards?_id=${cardId}`);
+        setCards(cards.filter(card => card._id !== cardId));
+        toast.success('Card deleted successfully');
       } catch (error) {
-        console.error('Error deleting card:', error)
-        toast.error('Failed to delete card')
+        handleError(error);
       }
     }
-  }
-
-  const handleError = (error: unknown) => {
-    if (axios.isAxiosError(error)) {
-      if (error.response?.status === 401) {
-        toast.error('Session expired. Please log in again.')
-        router.push('/login')
-      } else if (error.response?.data?.error) {
-        toast.error(error.response.data.error)
-      } else {
-        toast.error('An unknown error occurred')
-      }
-    } else {
-      toast.error('An unknown error occurred')
-    }
-  }
-
-  const getUserDetails = useCallback(async () => {
-    setIsLoading(true)
-    try {
-      const res = await axios.get('/api/users/me')
-      const userData = res.data.data
-      setCurrentUser(userData)
-    } catch (error) {
-      handleError(error)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
+  };
 
   const handleNextCard = useCallback(() => {
     setActiveCardIndex((currentIndex) => (currentIndex + 1) % cards.length);

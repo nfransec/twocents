@@ -7,8 +7,7 @@ import { toast } from "sonner"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import Image from "next/image"
-
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { User, ChevronRight, ChevronDown, Bell, CreditCard, Banknote, ChevronLeft } from "lucide-react"
 import LogoutButton from "@/components/LogoutButton"
@@ -41,7 +40,14 @@ const userFormSchema = z.object({
 export default function ProfilePage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
-  const [user, setUser] = useState<UserType | null>(null)
+  const [user, setUser] = useState<UserType>({
+    _id: '',
+    fullName: '',
+    email: '',
+    phoneNumber: '',
+    username: '',
+    profilePicture: 'https://github.com/shadcn.png'
+  })
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
 
   const userForm = useForm<z.infer<typeof userFormSchema>>({
@@ -74,7 +80,7 @@ export default function ProfilePage() {
   }
 
   const getUserDetails = useCallback(async () => {
-    if (user) return;
+    if (user._id) return;
     setIsLoading(true)
     try {
       const res = await axios.get('/api/users/me')
@@ -112,18 +118,22 @@ export default function ProfilePage() {
         <ChevronLeft className="w-4 h-4" />
         <h1 className="text-xl font-bold">My Profile</h1>
         <Bell className="w-4 h-4" />
-        
       </header>
       <main className='flex-1 overflow-y-auto'>
         <div className='max-w-md mx-auto px-2 py-2'>
+          <div className="flex items-center justify-center mb-6">
+            <Avatar className="h-24 w-24">
+              <AvatarImage src={user.profilePicture} />
+              <AvatarFallback className="bg-purple-700 text-xl">
+                {user.fullName?.charAt(0)?.toUpperCase() || '?'}
+              </AvatarFallback>
+            </Avatar>
+          </div>
 
-          <div className='flex flex-row items-center gap-4 mb-4'>
-            <Image src='https://github.com/shadcn.png' alt='user' width={50} height={50} className='rounded-full mb-2 bg-gray-700'/>
-            <div className='flex flex-row items-center justify-between flex-grow'>
-              <div className='flex flex-col'>
-                <h2 className='text-16-regular'>{user?.fullName || 'N/A'}</h2>
-                <p className='text-14-regular text-green-500'>{user?.username || 'N/A'}</p>
-              </div>
+          <div className='flex flex-col gap-4'>
+            <div className='flex flex-col'>
+              <h2 className='text-16-regular'>{user.fullName || 'N/A'}</h2>
+              <p className='text-14-regular text-green-500'>{user.username || 'N/A'}</p>
             </div>
           </div>
 
@@ -147,10 +157,10 @@ export default function ProfilePage() {
             </Button>
             {expandedSection === 'personalInfo' && (
               <div className="text-sm transition-all duration-300 ease-in-out bg-[#1c1c28] p-4 rounded-md flex flex-col gap-2">
-                <p className="text-gray-500 mb-2">Full Name: <span className="float-right text-emerald-500">{user?.fullName || 'N/A'}</span></p>
-                <p className="text-gray-500 mb-2">Email: <span className="float-right text-emerald-500">{user?.email || 'N/A'}</span></p>
+                <p className="text-gray-500 mb-2">Full Name: <span className="float-right text-emerald-500">{user.fullName || 'N/A'}</span></p>
+                <p className="text-gray-500 mb-2">Email: <span className="float-right text-emerald-500">{user.email || 'N/A'}</span></p>
                 <p className="text-gray-500 mb-2">Gender: <span className="float-right text-emerald-500">Prefer not to say</span></p>
-                <p className="text-gray-500 mb-2">Phone Number: <span className="float-right text-emerald-500">{user?.phoneNumber || 'N/A'}</span></p>
+                <p className="text-gray-500 mb-2">Phone Number: <span className="float-right text-emerald-500">{user.phoneNumber || 'N/A'}</span></p>
               </div>
             )}
 

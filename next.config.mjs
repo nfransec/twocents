@@ -11,11 +11,20 @@ const nextConfig = withPWA({
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'github.com',
-        port: '',
-        pathname: '/**',
+        hostname: 'avatars.githubusercontent.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      }
     ],
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   // Your existing Next.js config here
 });

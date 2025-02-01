@@ -174,14 +174,20 @@ export default function DashboardPage() {
     );
   };
 
-  const formatBillingMonth = (billingMonth: string) => {
+  const formatBillingMonth = (billingMonth: string | undefined) => {
     try {
-      // Parse YYYY-MM format to a Date object
-      const date = parse(billingMonth, 'yyyy-MM', new Date());
-      return format(date, 'MMMM yyyy');
+      if (!billingMonth) return 'N/A';
+      
+      // Check if billingMonth is in YYYY-MM format
+      if (billingMonth.match(/^\d{4}-\d{2}$/)) {
+        return format(parse(billingMonth, 'yyyy-MM', new Date()), 'MMMM yyyy');
+      }
+      
+      // If it's already a date string, just format it
+      return format(new Date(billingMonth), 'MMMM yyyy');
     } catch (error) {
       console.error('Error parsing billing month:', error);
-      return billingMonth; // Return original string if parsing fails
+      return billingMonth || 'N/A'; // Return original string or N/A if undefined
     }
   };
 
