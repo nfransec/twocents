@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CardType } from '@/app/cards/page';
+import { CardType } from '@/types/card';
 import { cardToBankMapping, CardName } from '@/utils/cardMappings';
 import { X, CheckCircle, CreditCard } from 'lucide-react';
 import './AddCardModal.css';
@@ -39,7 +39,8 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
     cardLimit: 0,
     billingDate: '',
     outstandingAmount: 0,
-    cardNumber: ''
+    cardNumber: '',
+    isPaid: false
   });
 
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -88,7 +89,8 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
         cardLimit: 0,
         billingDate: '',
         outstandingAmount: 0,
-        cardNumber: ''
+        cardNumber: '',
+        isPaid: false
       });
     }, 2000);
   };

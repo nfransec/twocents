@@ -14,21 +14,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { format } from "date-fns"
 import { PaymentScheduler } from '@/components/PaymentScheduler'
-
-export interface CardType {
-  _id: string;
-  cardName: string;
-  bankName: string;
-  cardLimit: number;
-  billingDate: string;
-  outstandingAmount: number;
-  cardNumber?: string;
-  cvv?: string;
-  isPaid?: boolean;
-  paidAmount?: number;
-  paymentDate?: string;
-  imageUrl?: string;
-}
+import { CardType } from '@/types/card'
 
 const CardDisplay = ({ card, isActive, index, activeIndex }: { card: CardType; isActive: boolean; index: number; activeIndex: number }) => {
   const getCardStyle = (cardName: string) => {
@@ -106,14 +92,26 @@ export default function CardsPage() {
     try {
       const response = await axios.get('/api/cards');
       if (response.data.success) {
-        setCards(response.data.data);
+        const processedCards: CardType[] = response.data.data.map((card: any) => ({
+          ...card,
+          isPaid: card.isPaid || false,
+          outstandingAmount: card.outstandingAmount || 0,
+          cardLimit: card.cardLimit || 0,
+          cardName: card.cardName || '',
+          bankName: card.bankName || '',
+          billingDate: card.billingDate || '',
+          _id: card._id || '',
+          paymentHistory: card.paymentHistory || []
+        }));
+        setCards(processedCards);
       }
     } catch (error) {
-      handleError(error);
+      console.error('Error fetching cards:', error);
+      toast.error('Failed to fetch cards');
     }
   };
 
-  const getUserDetails = async () => {
+  const getUserDetails = useCallback(async () => {
     try {
       const response = await axios.get('/api/user');
       if (response.data.success) {
@@ -122,7 +120,7 @@ export default function CardsPage() {
     } catch (error) {
       handleError(error);
     }
-  };
+  }, [handleError]);
 
   useEffect(() => {
     fetchCards();
@@ -130,7 +128,7 @@ export default function CardsPage() {
 
   useEffect(() => {
     getUserDetails();
-  }, []);
+  }, [getUserDetails]);
 
   const handleAddCard = async (newCard: Omit<CardType, '_id'>) => {
     try {

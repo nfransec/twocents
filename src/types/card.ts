@@ -6,6 +6,7 @@ export interface CardType {
   billingDate: string;
   outstandingAmount: number;
   cardNumber?: string;
+  cvv?: string;
   paymentDate?: string;
   paidAmount?: number;
   isPaid: boolean;
