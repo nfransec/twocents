@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useRouter } from "next/navigation"
+import { format, parse } from 'date-fns'
 
 export interface UserType {
   _id: string
@@ -27,6 +28,17 @@ export interface CardType {
   billingDate: string
   outstandingAmount: number
   cardNumber?: string
+  paymentDate?: string
+  paidAmount?: number
+  isPaid: boolean
+  paymentHistory?: {
+    amount: number
+    date: string
+    billingMonth: string
+    outstandingAfterPayment: number
+  }[]
+  lastPaymentAmount?: number
+  lastPaymentDate?: string
 }
 
 const TransactionItem = ({ icon, name, date, time, amount }: { icon: React.ReactNode, name: string, date: string, time: string, amount: string}) => (
@@ -43,6 +55,15 @@ const TransactionItem = ({ icon, name, date, time, amount }: { icon: React.React
     <p className={`font-semibold text-sm ${amount.startsWith('-') ? 'text-red-500' : 'text-green-500'}`}>{amount}</p>
   </div>
 )
+
+interface PaymentHistory {
+  amount: number;
+  date: Date;
+  billingMonth: string;
+  outstandingAfterPayment: number;
+  cardName?: string;
+  bankName?: string;
+}
 
 export default function DashboardPage() {
   const [user, setUser] = useState<UserType | null>(null)
@@ -95,6 +116,75 @@ export default function DashboardPage() {
 
   const totalDue = cards.reduce((acc, card) => acc + card.outstandingAmount, 0)
 
+  const calculateMonthlyPayments = (cards: CardType[]) => {
+    console.log('All cards:', cards); // Log all cards
+    
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    console.log('Current month/year:', currentMonth, currentYear);
+    
+    return cards.reduce((total, card) => {
+      console.log('Processing card:', {
+        cardName: card.cardName,
+        isPaid: card.isPaid,
+        paidAmount: card.paidAmount,
+        paymentDate: card.paymentDate
+      });
+      
+      // If the card is paid and has a paidAmount
+      if (card.isPaid && card.paidAmount) {
+        console.log('Card is paid with amount:', card.paidAmount);
+        return total + card.paidAmount;
+      }
+      return total;
+    }, 0);
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('/api/cards');
+        if (response.data.success) {
+          const cards = response.data.data;
+          setCards(cards);
+          const totalPayments = calculateMonthlyPayments(cards);
+          console.log('Total monthly payments calculated:', totalPayments);
+        }
+      } catch (error) {
+        console.error('Error fetching cards:', error);
+        toast.error('Failed to fetch cards');
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const getAllPaymentHistory = (cards: CardType[]) => {
+    const allPayments = cards.flatMap(card => 
+      (card.paymentHistory || []).map(payment => ({
+        ...payment,
+        cardName: card.cardName,
+        bankName: card.bankName
+      }))
+    );
+
+    // Sort by date, most recent first
+    return allPayments.sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  };
+
+  const formatBillingMonth = (billingMonth: string) => {
+    try {
+      // Parse YYYY-MM format to a Date object
+      const date = parse(billingMonth, 'yyyy-MM', new Date());
+      return format(date, 'MMMM yyyy');
+    } catch (error) {
+      console.error('Error parsing billing month:', error);
+      return billingMonth; // Return original string if parsing fails
+    }
+  };
+
   return (
     <div className="flex flex-col text-foreground min-h-screen bg-[#1c1c28] text-white">
         <div className='flex items-center justify-between p-4 bg-zinc-900'>
@@ -117,8 +207,8 @@ export default function DashboardPage() {
                 </Card>
                 <Card className='bg-zinc-900 w-48'>
                     <CardHeader>
-                        <CardTitle>₹ {totalDue.toLocaleString()}</CardTitle>
-                        <CardDescription>recent spends</CardDescription>
+                        <CardTitle>₹ {calculateMonthlyPayments(cards).toLocaleString()}</CardTitle>
+                        <CardDescription>monthly payments</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ArrowRight className='w-5 h-5' />
@@ -165,6 +255,22 @@ export default function DashboardPage() {
                     <p className="text-xs text-muted-foreground mt-2">Milestone achieved</p>
                   </CardContent>
                 </Card>
+                <Card className="bg-gradient-to-br from-purple-900 to-purple-800">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <p className="text-sm text-purple-100">Monthly Payments</p>
+                        <h2 className="text-2xl font-bold text-white">
+                          ₹{calculateMonthlyPayments(cards).toLocaleString()}
+                        </h2>
+                      </div>
+                      <CreditCard className="w-8 h-8 text-purple-300" />
+                    </div>
+                    <p className="text-xs text-purple-200 mt-2">
+                      Total credit card payments this month
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
             <TabsContent value="transactions">
@@ -209,6 +315,46 @@ export default function DashboardPage() {
               </Card>
             </TabsContent>
           </Tabs>
+
+          {/* Payment History Section */}
+          <div className="bg-slate-800 rounded-xl p-6 mt-4">
+            <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
+              <CreditCard className="w-5 h-5 mr-2" />
+              Payment History
+            </h2>
+            
+            <div className="space-y-4">
+              {getAllPaymentHistory(cards).length > 0 ? (
+                getAllPaymentHistory(cards).map((payment, index) => (
+                  <div 
+                    key={index}
+                    className="bg-slate-700/50 rounded-lg p-4 flex justify-between items-center"
+                  >
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-white">
+                        {payment.cardName} ({payment.bankName})
+                      </p>
+                      <p className="text-xs text-slate-300">
+                        {format(new Date(payment.date), 'MMM dd, yyyy')}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-green-400">
+                        ₹{payment.amount.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        Billing Month: {formatBillingMonth(payment.billingMonth)}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-slate-400 py-6">
+                  <p>No payment history available</p>
+                </div>
+              )}
+            </div>
+          </div>
         </main>
     </div>
   )

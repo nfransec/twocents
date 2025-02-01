@@ -7,12 +7,13 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { AddCardModal } from "@/components/AddCardModal"
 import { EditCardModal } from "@/components/EditCardModal"
-import { Bell, Trash2, Pencil, ChevronLeft, ChevronRight, Plus, Banknote, HelpCircle, Calendar, Lock } from "lucide-react"
+import { Bell, Trash2, Pencil, ChevronLeft, ChevronRight, Plus, Banknote, HelpCircle, Calendar, Lock, CheckCircle, CreditCard } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { UserType } from "@/app/profile/page"
 import { motion, AnimatePresence } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { format } from "date-fns"
+import { PaymentScheduler } from '@/components/PaymentScheduler'
 
 export interface CardType {
   _id: string;
@@ -26,6 +27,7 @@ export interface CardType {
   isPaid?: boolean;
   paidAmount?: number;
   paymentDate?: string;
+  imageUrl?: string;
 }
 
 const CardDisplay = ({ card, isActive, index, activeIndex }: { card: CardType; isActive: boolean; index: number; activeIndex: number }) => {
@@ -82,6 +84,9 @@ export default function MobileCardsPage() {
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false)
   const [editingCard, setEditingCard] = useState<CardType | null>(null)
   const [activeCardIndex, setActiveCardIndex] = useState(0)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedCard, setSelectedCard] = useState<CardType | null>(null)
 
   useEffect(() => {
     fetchCards()
@@ -91,7 +96,9 @@ export default function MobileCardsPage() {
   const fetchCards = async () => {
     try {
       const response = await axios.get('/api/cards')
-      setCards(response.data.data)
+      if (response.data.success) {
+        setCards(response.data.data)
+      }
     } catch (error) {
       console.error('Error fetching cards:', error)
       toast.error('Failed to fetch cards')
@@ -100,33 +107,52 @@ export default function MobileCardsPage() {
 
   const handleAddCard = async (newCard: Omit<CardType, '_id'>) => {
     try {
+      console.log('Adding new card:', newCard); // Debug log
       const response = await axios.post('/api/cards', newCard);
-      setCards([...cards, response.data.data]);
-      toast.success('Card added successfully');
+      
+      if (response.data.success) {
+        setCards([...cards, response.data.data]);
+        setIsAddModalOpen(false);
+        toast.success('Card added successfully');
+      }
     } catch (error) {
       console.error('Error adding card:', error);
       toast.error('Failed to add card');
     }
-  }
+  };
 
-  const handleEditCard = (card: CardType) => {
-    setEditingCard(card)
-  }
+  const handleEditClick = (card: CardType) => {
+    setSelectedCard(card);
+    setIsEditModalOpen(true);
+    console.log('Opening edit modal for card:', card); // Debug log
+  };
 
-  const handleSaveEditedCard = async (editedCard: Partial<CardType>) => {
+  const handleUpdateCard = async (updatedCard: CardType) => {
     try {
-      if (editedCard.outstandingAmount !== undefined) {
-        editedCard.isPaid = false;
-      }
+      // Simplify the logic: if outstanding amount is 0, card is paid; if > 0, card is unpaid
+      const cardToUpdate = {
+        ...updatedCard,
+        isPaid: updatedCard.outstandingAmount === 0,  // Simple boolean check
+        paidAmount: updatedCard.outstandingAmount === 0 ? updatedCard.outstandingAmount : 0
+      };
+
+      console.log('Updating card with:', cardToUpdate); // Debug log
+
+      const response = await axios.put(`/api/cards/${updatedCard._id}`, cardToUpdate);
       
-      const response = await axios.put(`/api/cards`, editedCard)
-      setCards(cards.map(card => card._id === editedCard._id ? response.data.data : card))
-      toast.success('Card updated successfully')
+      if (response.data.success) {
+        const newCards = [...cards];
+        const index = cards.findIndex(card => card._id === updatedCard._id);
+        newCards[index] = response.data.data;
+        setCards(newCards);
+        setIsEditModalOpen(false);
+        toast.success('Card updated successfully');
+      }
     } catch (error) {
-      console.error('Error updating card:', error)
-      toast.error('Failed to update card')
+      console.error('Error updating card:', error);
+      toast.error('Failed to update card');
     }
-  }
+  };
 
   const handleDeleteCard = async (cardId: string) => {
     if (window.confirm('Are you sure you want to delete this card?')) {
@@ -185,35 +211,43 @@ export default function MobileCardsPage() {
     return (prev.outstandingAmount > current.outstandingAmount) ? prev : current;
   }, cards[0]);
 
-  const handlePayment = async (cardId: string, outstandingAmount: number) => {
-    if (outstandingAmount === 0) {
-      toast.success('You are all set!! No outstaning amount to pay 🎉');
-      return;
-    }
+  const handlePayment = async (cardId: string, amount: number) => {
+    try {
+      console.log('Before payment:', cards[activeCardIndex]); // Debug log
+      const response = await axios.put(`/api/cards/${cardId}`, {
+        ...cards[activeCardIndex],
+        isPaid: true,
+        paidAmount: amount,
+        outstandingAmount: 0,
+        paymentDate: new Date().toISOString()
+      });
 
-    console.log('Making payment request to: ', '/api/cards');
-    const response = await fetch('/api/cards/', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ _id: cardId, isPaid: true, paidAmount: outstandingAmount }),
-    });
-
-    if (response.ok) {
-      const updatedCard = await response.json();
-      // Update the state to reflect the changes
-      setCards((prevCards) =>
-        prevCards.map((card) => (card._id === updatedCard.data._id ? updatedCard.data : card))
-      );
-    } else {
-      // Handle error
-      console.error('Payment failed');
+      if (response.data.success) {
+        const updatedCards = [...cards];
+        updatedCards[activeCardIndex] = response.data.data;
+        setCards(updatedCards);
+        toast.success('Card marked as paid successfully');
+        console.log('After payment:', response.data.data); // Debug log
+      }
+    } catch (error) {
+      console.error('Error marking card as paid:', error);
+      toast.error('Failed to mark card as paid');
     }
   };
 
   return (
     <div className="flex flex-col bg-[#1c1c28] text-white min-h-screen">
+      <div className='flex items-center justify-between p-4 bg-zinc-900'>
+        <h1 className='font-extrabold'>Manage your cards</h1>
+        <Button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+        >
+          <Plus className="w-4 h-4" />
+          Add Card
+        </Button>
+      </div>
+
       <header className="p-4 flex justify-between items-center">
         <ChevronLeft className="w-4 h-4" />
         <h1 className="text-xl font-bold">My Cards</h1>
@@ -288,15 +322,15 @@ export default function MobileCardsPage() {
               </div>
               <div className="flex gap-2 mt-4">
                 <Button 
-                  onClick={() => handleEditCard(cards[activeCardIndex])} 
-                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white"
+                  onClick={() => handleEditClick(cards[activeCardIndex])} 
+                  className="flex-1 bg-slate-700 hover:bg-slate-600"
                 >
-                  <Pencil className="h-4 w-4 mr-2" />
+                  <Pencil className="w-4 h-4 mr-2" />
                   Edit
                 </Button>
                 <Button 
                   onClick={() => handleDeleteCard(cards[activeCardIndex]._id)} 
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white mb-2"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
@@ -304,11 +338,39 @@ export default function MobileCardsPage() {
               </div>
               <div className="flex justify-center">
                 <Button
-                  className="bg-purple-700 p-2 text-md rounded mt-2 font-semibold w-full"
+                  className={`w-full ${
+                    cards[activeCardIndex]?.outstandingAmount === 0 
+                      ? 'bg-green-600/20 text-green-300 cursor-not-allowed hover:bg-green-600/20'
+                      : 'bg-purple-700 hover:bg-purple-600'
+                  }`}
+                  disabled={cards[activeCardIndex]?.outstandingAmount === 0}
                   onClick={() => handlePayment(cards[activeCardIndex]._id, cards[activeCardIndex].outstandingAmount)}
                 >
-                  Mark as Paid
+                  {cards[activeCardIndex]?.outstandingAmount === 0 ? (
+                    <>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      <span className="font-bold">Paid</span>
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      Mark as Paid
+                    </>
+                  )}
                 </Button>
+              </div>
+              <div className="mt-4 border-t border-gray-700 pt-4">
+                <h3 className="text-md font-semibold mb-2">Payment Schedule</h3>
+                <PaymentScheduler 
+                  card={cards[activeCardIndex]} 
+                  onUpdate={(updatedCard) => {
+                    setCards(prevCards =>
+                      prevCards.map(card =>
+                        card._id === updatedCard._id ? updatedCard : card
+                      )
+                    )
+                  }} 
+                />
               </div>
             </CardContent>
           </Card>
@@ -329,19 +391,20 @@ export default function MobileCardsPage() {
         )}
       </main>
 
-      {isAddCardModalOpen && (
-        <AddCardModal
-          isOpen={isAddCardModalOpen}
-          onClose={() => setIsAddCardModalOpen(false)}
-          onAddCard={handleAddCard}
-        />
-      )}
-      {editingCard && (
+      <AddCardModal 
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAddCard={handleAddCard}
+      />
+      {selectedCard && (
         <EditCardModal
-          isOpen={!!editingCard}
-          onClose={() => setEditingCard(null)}
-          onEditCard={handleSaveEditedCard}
-          card={editingCard}
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedCard(null);
+          }}
+          onEdit={handleUpdateCard}
+          card={selectedCard}
         />
       )}
     </div>

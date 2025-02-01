@@ -44,39 +44,33 @@ export async function POST(request: NextRequest) {
     await connectToDatabase();
 
     const token = request.cookies.get("token")?.value || "";
-    const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as { id: string };
+    const decodedToken = jwt.verify(
+      token,
+      process.env.NEXT_PUBLIC_TOKEN_SECRET!
+    ) as { id: string };
     const userId = decodedToken.id;
 
     const body = await request.json();
-    console.log('Received body:', JSON.stringify(body));
 
-    try {
-      const validatedData = cardSchema.parse(body);
-      console.log('Validated data:', validatedData);
+    const newCard = await Card.create({
+      ...body,
+      userId,
+      paymentHistory: [],
+      isPaid: false,
+      currentPaidAmount: 0
+    });
 
-      const newCard = new Card({
-        userId,
-        ...validatedData,
-      });
-
-      await newCard.save();
-
-      return NextResponse.json({
-        message: "Card added successfully",
-        success: true,
-        data: newCard,
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        console.error('Zod validation error:', error);
-        const errorMessage = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`).join(', ');
-        return NextResponse.json({ error: errorMessage }, { status: 400 });
-      }
-      throw error;
-    }
-  } catch (error) {
-    console.error('Error in POST /api/cards:', error);
-    return NextResponse.json({ error: "An error occurred while adding the card" }, { status: 500 });
+    return NextResponse.json({
+      message: "Card added successfully",
+      success: true,
+      data: newCard,
+    });
+  } catch (error: any) {
+    console.error("Error adding card:", error.message);
+    return NextResponse.json(
+      { error: "Error adding card", details: error.message },
+      { status: 500 }
+    );
   }
 }
 

@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -5,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CardType } from '@/app/cards/page';
 import { cardToBankMapping, CardName } from '@/utils/cardMappings';
-import ConfirmationScreen from './ConfirmationScreen';
+import { X, CheckCircle, CreditCard } from 'lucide-react';
 import './AddCardModal.css';
+import { toast } from 'react-hot-toast';
 
 interface AddCardModalProps {
   isOpen: boolean;
@@ -19,6 +22,15 @@ const bankLogos = {
   'Axis': 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.stickpng.com%2Fimg%2Ficons-logos-emojis%2Fbank-logos%2Faxis-bank-thumbnail&psig=AOvVaw3oWH45d9F5sSiocye-46ER&ust=1731502814688000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCOCjhuXs1okDFQAAAAAdAAAAABAE',
 }
 
+const ConfirmationScreen = () => (
+  <DialogContent className="bg-gradient-to-b from-slate-900 to-slate-800 border-0">
+    <div className="flex flex-col items-center justify-center p-6 text-center">
+      <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
+      <h2 className="text-xl font-semibold text-white mb-2">Card Added Successfully!</h2>
+      <p className="text-slate-300">Your new card has been added to your account.</p>
+    </div>
+  </DialogContent>
+);
 
 export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) {
   const [newCard, setNewCard] = useState<Omit<CardType, '_id'>>({
@@ -31,15 +43,14 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
   });
 
   const [showConfirmation, setShowConfirmation] = useState(false);
-
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setShowModal(true); // Show modal when isOpen is true
+      setShowModal(true);
     } else {
-      const timer = setTimeout(() => setShowModal(false), 300); // Delay hiding for transition
-      return () => clearTimeout(timer); // Cleanup timer
+      const timer = setTimeout(() => setShowModal(false), 300);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
@@ -60,94 +71,129 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCard.cardName || !newCard.bankName || !newCard.cardLimit || !newCard.billingDate) {
-      alert('Please fill all required fields');
+      toast.error('Please fill all required fields');
       return;
     }
-    onAddCard(newCard);
+    await onAddCard(newCard);
     setShowConfirmation(true);
-  };
-
-  const handleClose = () => {
-    onClose(); // Call the onClose prop
+    setTimeout(() => {
+      setShowConfirmation(false);
+      onClose();
+      setNewCard({
+        cardName: '',
+        bankName: '',
+        cardLimit: 0,
+        billingDate: '',
+        outstandingAmount: 0,
+        cardNumber: ''
+      });
+    }, 2000);
   };
 
   return (
-    <div className={`modal-overlay ${showModal ? 'open' : ''}`}>
-        <div className={`modal-content ${showModal && isOpen ? 'slide-up' : ''}`}>
-          <Dialog open={isOpen} onOpenChange={handleClose}>
-            { showConfirmation ? (
-              <ConfirmationScreen onClose={handleClose} />
-            ) : (
-              <DialogContent className='bg-gradient-to-br h-3/4 from-gray-800 to-gray-900 shadow-lg p-6 outline-none'>
-                <DialogTitle className='text-2xl font-bold'>Add Your Card</DialogTitle>
-                <form onSubmit={handleSubmit} className='flex flex-col gap-8'>
-                  <Select onValueChange={handleCardNameChange}>
-                    <SelectTrigger className='w-full bg-gray-700 rounded-none text-emerald-500'>
-                      <SelectValue placeholder='select your card'></SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className='w-full bg-gray-700 text-white rounded-none'>
-                      {Object.keys(cardToBankMapping).map((cardName) => (
-                        <SelectItem key={cardName} value={cardName}>
-                          {cardName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      {showConfirmation ? (
+        <ConfirmationScreen />
+      ) : (
+        <DialogContent className="bg-gradient-to-b from-slate-900 to-slate-800 border-0 sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
+            <DialogTitle className="text-xl font-semibold text-white">Add Your Card</DialogTitle>
+            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+              <X size={20} />
+            </button>
+          </div>
 
-                  <Input
-                  name="bankName"
-                  value={newCard.bankName}
-                  readOnly
-                  placeholder="Bank Name"
-                  className="w-full bg-gray-700 text-bold text-emerald-500 rounded-md"
-                />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-200">Select Card</label>
+              <Select onValueChange={handleCardNameChange}>
+                <SelectTrigger className="w-full bg-slate-800/50 border-slate-700 text-slate-200 h-11 rounded-lg focus:ring-emerald-500">
+                  <SelectValue placeholder="Choose your card type" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  {Object.keys(cardToBankMapping).map((cardName) => (
+                    <SelectItem 
+                      key={cardName} 
+                      value={cardName}
+                      className="text-slate-200 focus:bg-slate-700 focus:text-white"
+                    >
+                      {cardName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                <Input
-                  name="cardLimit"
-                  type="number"
-                  value={newCard.cardLimit !== 0 ? newCard.cardLimit : ''}
-                  onChange={handleInputChange}
-                  placeholder="Card Limit"
-                  className="w-full bg-gray-700 text-bold text-emerald-500 rounded-md"
-                  required
-                />
-                <Input
-                  name="billingDate"
-                  type="date"
-                  value={newCard.billingDate}
-                  onChange={handleInputChange}
-                  placeholder="Billing Date"
-                  className="w-full bg-gray-700 text-bold text-emerald-500 rounded-md"
-                  required
-                />
-                <Input
-                  name="outstandingAmount"
-                  type="number"
-                  value={newCard.outstandingAmount !== 0 ? newCard.outstandingAmount : ''}
-                  onChange={handleInputChange}
-                  placeholder="Outstanding Amount"
-                  className="w-full bg-gray-700 text-bold text-emerald-500 rounded-md"
-                  required
-                />
-                <Input
-                  name="cardNumber"
-                  value={newCard.cardNumber || ''}
-                  onChange={handleInputChange}
-                  placeholder="Card Number (optional)"
-                  maxLength={16}
-                  className="w-full bg-gray-700 text-bold text-emerald-500 rounded-md"
-                />
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-200">Bank Name</label>
+              <Input
+                name="bankName"
+                value={newCard.bankName}
+                readOnly
+                className="bg-slate-800/50 border-slate-700 text-emerald-500 h-11 rounded-lg"
+              />
+            </div>
 
-                <Button type="submit" className='w-full mt-4 py-3 bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-semibold rounded-none shadow-md'>Add Card</Button>
-    
-                </form>
-              </DialogContent>
-            )}
-          </Dialog>
-        </div>
-    </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-200">Card Limit</label>
+              <Input
+                name="cardLimit"
+                type="number"
+                value={newCard.cardLimit !== 0 ? newCard.cardLimit : ''}
+                onChange={handleInputChange}
+                className="bg-slate-800/50 border-slate-700 text-slate-200 h-11 rounded-lg"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-200">Billing Date</label>
+              <Input
+                name="billingDate"
+                type="date"
+                value={newCard.billingDate}
+                onChange={handleInputChange}
+                className="bg-slate-800/50 border-slate-700 text-slate-200 h-11 rounded-lg"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-200">Outstanding Amount</label>
+              <Input
+                name="outstandingAmount"
+                type="number"
+                value={newCard.outstandingAmount !== 0 ? newCard.outstandingAmount : ''}
+                onChange={handleInputChange}
+                className="bg-slate-800/50 border-slate-700 text-slate-200 h-11 rounded-lg"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-200">Card Number (Optional)</label>
+              <Input
+                name="cardNumber"
+                value={newCard.cardNumber || ''}
+                onChange={handleInputChange}
+                maxLength={16}
+                className="bg-slate-800/50 border-slate-700 text-slate-200 h-11 rounded-lg"
+                placeholder="•••• •••• •••• ••••"
+              />
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full h-11 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-medium rounded-lg transition-all duration-200 ease-in-out transform hover:scale-[1.02]"
+            >
+              Add Card
+            </Button>
+          </form>
+        </DialogContent>
+      )}
+    </Dialog>
   );
 }
