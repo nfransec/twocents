@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useState } from 'react'
-import { Bell, ChevronRight, ChevronLeft, Search, ArrowUpRight, Wallet, CreditCard, ArrowDown, ArrowUp, ArrowRight } from 'lucide-react'
+import { Bell, ChevronRight, ChevronLeft, Search, ArrowUpRight, ArrowDownRight, Wallet, CreditCard, ArrowDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -65,11 +65,36 @@ interface PaymentHistory {
   bankName?: string;
 }
 
+const getAllPaymentHistory = (cards: CardType[]) => {
+  return cards.reduce((history: PaymentHistory[], card) => {
+    if (!card.paymentHistory) return history;
+    
+    const cardPayments = card.paymentHistory.map(payment => ({
+      ...payment,
+      cardName: card.cardName,
+      bankName: card.bankName,
+      date: new Date(payment.date)
+    }));
+    
+    return [...history, ...cardPayments];
+  }, []).sort((a, b) => b.date.getTime() - a.date.getTime());
+};
+
+// Add this helper function to calculate the percentage change
+const calculatePercentageChange = (currentValue: number, previousValue: number): number => {
+  if (previousValue === 0) return 0;
+  return ((currentValue - previousValue) / previousValue) * 100;
+};
+
 export default function DashboardPage() {
   const [user, setUser] = useState<UserType | null>(null)
   const [cards, setCards] = useState<CardType[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 10
+  const allTransactions = getAllPaymentHistory(cards)
+  const totalPages = Math.ceil(allTransactions.length / ITEMS_PER_PAGE)
 
   const fetchUser = useCallback(async () => {
     setIsLoading(true)
@@ -159,21 +184,6 @@ export default function DashboardPage() {
     fetchData();
   }, [fetchData]);
 
-  const getAllPaymentHistory = (cards: CardType[]) => {
-    const allPayments = cards.flatMap(card => 
-      (card.paymentHistory || []).map(payment => ({
-        ...payment,
-        cardName: card.cardName,
-        bankName: card.bankName
-      }))
-    );
-
-    // Sort by date, most recent first
-    return allPayments.sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-  };
-
   const formatBillingMonth = (billingMonth: string | undefined) => {
     try {
       if (!billingMonth) return 'N/A';
@@ -191,39 +201,24 @@ export default function DashboardPage() {
     }
   };
 
-  return (
-    <div className="flex flex-col text-foreground min-h-screen bg-[#1c1c28] text-white">
-        <div className='flex items-center justify-between p-4 bg-zinc-900'>
-            <h1 className='font-extrabold'>Manage your cards</h1>
-            <Button variant="outline" className='rounded-full hover:bg-gray-600'>Add card</Button>
-        </div>
+  const getPaginatedTransactions = () => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    const endIndex = startIndex + ITEMS_PER_PAGE
+    return allTransactions.slice(startIndex, endIndex)
+  }
 
-        <main className="flex-1 container py-2 space-y-4">
-        <div className='p-4'>
-            <h2 className='text-14-regular text-gray-200 mb-4'>SUMMARY ACROSS CARDS</h2>
-            <div className='flex flex-row gap-4'>
-                <Card className='bg-zinc-900 w-48'>
-                    <CardHeader>
-                        <CardTitle>₹ {totalDue.toLocaleString()}</CardTitle>
-                        <CardDescription>total due</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ArrowRight className='w-5 h-5' />
-                    </CardContent>
-                </Card>
-                <Card className='bg-zinc-900 w-48'>
-                    <CardHeader>
-                        <CardTitle>₹ {calculateMonthlyPayments(cards).toLocaleString()}</CardTitle>
-                        <CardDescription>monthly payments</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ArrowRight className='w-5 h-5' />
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
+  // Calculate monthly payments (previous month's payments)
+  const lastMonthPayments = calculateMonthlyPayments(cards);
+  
+  // Calculate percentage change
+  const percentageChange = calculatePercentageChange(totalDue, lastMonthPayments);
+
+  return (
+    <div className="flex flex-col bg-[#1c1c28] text-white min-h-screen">
+      <main className="flex-1 overflow-hidden px-4">
+        <div className="max-w-7xl mx-auto py-6">
           <Tabs defaultValue="overview">
-            <TabsList className="grid w-full grid-cols-2 border-b-2 border-gray-200  bg-white text-black">
+            <TabsList className="grid w-full grid-cols-2 border-b-2 border-gray-200 bg-white text-black">
               <TabsTrigger value="overview" className="hover:bg-gray-300">Overview</TabsTrigger>
               <TabsTrigger value="transactions" className="hover:bg-gray-300">Transactions</TabsTrigger>
             </TabsList>
@@ -231,7 +226,7 @@ export default function DashboardPage() {
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card className='mt-4 border-none bg-gradient-to-r from-emerald-400 to-cyan-400'>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-bold ">Total Income</CardTitle>
+                    <CardTitle className="text-sm font-bold">Total Income</CardTitle>
                     <Wallet className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -241,24 +236,31 @@ export default function DashboardPage() {
                 </Card>
                 <Card className='bg-gradient-to-r from-rose-400 to-red-500 border-none'>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-bold">Total Spent</CardTitle>
+                    <CardTitle className="text-sm font-bold">Total Due</CardTitle>
                     <CreditCard className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">₹{totalDue.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground text-black mt-1">+17% from last month</p>
-                  </CardContent>
-                </Card>
-                <Card className='border-none bg-gradient-to-r from-slate-500 to-slate-800'>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Reward Points</CardTitle>
-                    <div className="text-sm font-medium">46%</div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className='bg-dark-600 w-full h-1 rounded-full'>
-                      <div className='bg-emerald-600 w-[46%] h-1 rounded-full'></div>
+                    <div className="flex items-center mt-1">
+                      {percentageChange > 0 ? (
+                        <>
+                          <ArrowUpRight className="h-4 w-4 text-error-800" />
+                          <span className="text-xs text-error-800 ml-1">
+                            +{percentageChange.toFixed(1)}%
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <ArrowDownRight className="h-4 w-4 text-success-700" />
+                          <span className="text-xs font-bold text-success-800 ml-1">
+                            {percentageChange.toFixed(1)}%
+                          </span>
+                        </>
+                      )}
+                      <span className="text-xs text-muted-foreground text-black ml-2">
+                        from last month
+                      </span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">Milestone achieved</p>
                   </CardContent>
                 </Card>
                 <Card className="bg-gradient-to-br from-purple-900 to-purple-800">
@@ -280,88 +282,51 @@ export default function DashboardPage() {
               </div>
             </TabsContent>
             <TabsContent value="transactions">
-              <Card>
+              <Card className="relative">
+                <div className="absolute top-4 right-4 flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
                 <CardHeader>
                   <CardTitle>Recent Transactions</CardTitle>
-                  <CardDescription>You made 12 transactions this month</CardDescription>
+                  <CardDescription>
+                    Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, allTransactions.length)} of {allTransactions.length} transactions
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <TransactionItem
-                    icon={<ArrowDown className="h-4 w-4" />}
-                    name="PhonePe"
-                    date="12 October"
-                    time="11:55 AM"
-                    amount="- ₹1,276.22"
-                  />
-                  <TransactionItem
-                    icon={<ArrowDown className="h-4 w-4" />}
-                    name="PlayStation"
-                    date="18 October"
-                    time="7:50 PM"
-                    amount="- ₹4,999.00"
-                  />
-                  <TransactionItem
-                    icon={<ArrowDown className="h-4 w-4" />}
-                    name="IHCL"
-                    date="19 October"
-                    time="11:17 AM"
-                    amount="- ₹8,617.86"
-                  />
-                  <TransactionItem
-                    icon={<ArrowDown className="h-4 w-4" />}
-                    name="Apple Music"
-                    date='22 October'
-                    time="09:17 AM"
-                    amount="- ₹199.00"
-                  />
-                  <Button variant="outline" className="w-full mt-4">
-                    View All Transactions <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
+                  {getPaginatedTransactions().map((transaction, index) => (
+                    <TransactionItem
+                      key={index}
+                      icon={<ArrowDown className="h-4 w-4" />}
+                      name={`${transaction.cardName} (${transaction.bankName})`}
+                      date={format(new Date(transaction.date), 'dd MMMM')}
+                      time={format(new Date(transaction.date), 'hh:mm a')}
+                      amount={`₹${transaction.amount.toLocaleString()}`}
+                    />
+                  ))}
                 </CardContent>
               </Card>
             </TabsContent>
           </Tabs>
-
-          {/* Payment History Section */}
-          <div className="bg-slate-800 rounded-xl p-6 mt-4">
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-              <CreditCard className="w-5 h-5 mr-2" />
-              Payment History
-            </h2>
-            
-            <div className="space-y-4">
-              {getAllPaymentHistory(cards).length > 0 ? (
-                getAllPaymentHistory(cards).map((payment, index) => (
-                  <div 
-                    key={index}
-                    className="bg-slate-700/50 rounded-lg p-4 flex justify-between items-center"
-                  >
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-white">
-                        {payment.cardName} ({payment.bankName})
-                      </p>
-                      <p className="text-xs text-slate-300">
-                        {format(new Date(payment.date), 'MMM dd, yyyy')}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-green-400">
-                        ₹{payment.amount.toLocaleString()}
-                      </p>
-                      <p className="text-xs text-slate-400">
-                        Billing Month: {formatBillingMonth(payment.billingMonth)}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center text-slate-400 py-6">
-                  <p>No payment history available</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </main>
+        </div>
+      </main>
     </div>
   )
 }
