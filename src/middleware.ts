@@ -4,11 +4,19 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname
 
-    const isPublicPath = path === '/login' || path === '/signup' || path === '/verifyemail'
+    // Add Gmail callback to public paths
+    const isPublicPath = path === '/login' || 
+                        path === '/signup' || 
+                        path === '/verifyemail' ||
+                        path.startsWith('/api/auth/gmail/callback')
 
     const token = request.cookies.get('token')?.value || ''
 
     if (isPublicPath && token) {
+        // Don't redirect Gmail callback even if user has token
+        if (path.startsWith('/api/auth/gmail/callback')) {
+            return NextResponse.next()
+        }
         return NextResponse.redirect(new URL('/', request.nextUrl))
     }
 
@@ -28,10 +36,11 @@ export function middleware(request: NextRequest) {
 export const config = {
     matcher: [
         '/',
-        '/profile',
         '/login',
         '/signup',
+        '/profile',
         '/verifyemail',
-        '/admin/:path*'
+        '/admin/:path*',
+        '/api/auth/gmail/callback'
     ]
 }

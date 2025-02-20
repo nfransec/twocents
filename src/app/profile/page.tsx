@@ -11,6 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { User, ChevronRight, ChevronDown, Bell, CreditCard, Banknote, ChevronLeft } from "lucide-react"
 import LogoutButton from "@/components/LogoutButton"
+import GmailIntegration from '@/components/GmailIntegration'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export interface UserType {
   _id: string
@@ -257,7 +259,20 @@ export default function ProfilePage() {
 
           <div className='border-b border-emerald-900 mt-4 mb-4'/>
 
+          <Card>
+              <CardHeader>
+                <CardTitle>Settings & Integrations</CardTitle>
+                <CardDescription>Manage your account settings and connect your email</CardDescription>
+              </CardHeader>
+              <CardContent className='space-y-6'>
+                <GmailIntegration />
+              </CardContent>
+            </Card>
+
+            <div className='border-b border-emerald-900 mt-4 mb-4'/>
+          
           <LogoutButton />
+
         </div>
       </main>
     </div>

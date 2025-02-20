@@ -10,10 +10,14 @@ function MyApp({ Component, pageProps }: AppProps) {
     const interceptor = axios.interceptors.response.use(
       response => response,
       error => {
-        if (error.response && error.response.status === 401) {
-          // Token is expired or invalid
-          localStorage.removeItem('auth_token');
-          router.push('/login');
+        if (error.response?.status === 401) {
+          // Only redirect if it's not a Gmail-related endpoint
+          const isGmailEndpoint = error.config.url?.includes('/api/gmail') || 
+                                 error.config.url?.includes('/api/auth/gmail')
+          if (!isGmailEndpoint) {
+            localStorage.removeItem('auth_token');
+            router.push('/login');
+          }
         }
         return Promise.reject(error);
       }

@@ -1,12 +1,7 @@
-/** @type {import('next').NextConfig} */
-import withPWA from 'next-pwa';
+import withPWA from 'next-pwa'
 
-const nextConfig = withPWA({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
-  register: true,
-  skipWaiting: true,
-})({
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
     remotePatterns: [
       {
@@ -27,6 +22,13 @@ const nextConfig = withPWA({
     ignoreDuringBuilds: true,
   },
   // Your existing Next.js config here
-});
+}
 
-export default nextConfig;
+const withPWAConfig = withPWA({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development'
+})
+
+export default withPWAConfig(nextConfig)
