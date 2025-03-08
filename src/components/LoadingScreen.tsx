@@ -6,7 +6,7 @@ const LoadingScreen = () => {
     <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
       <div className="relative mb-4">
         <Image 
-          src="/apple-touch-icon.png"
+          src="/assets/images/apple-touch-icon.png"
           alt="Loading..."
           width={100}
           height={100}
