@@ -11,13 +11,13 @@ export default function LoginPage() {
                     <LoginForm />
 
                     <div className='flex flex-col gap-2 mt-8 justify-center items-center'>
-                        <p className='text-14-regular text-dark-600'>
+                        <p className='text-14-regular text-emerald-600'>
                             Don&apos;t have an account? 
                             <Link 
                                 href='/signup'
-                                className='text-white hover:text-green-500'
+                                className='text-white hover:text-emerald-600'
                             >
-                                <span className='font-bold'> Sign Up</span>
+                                <span className=''> Sign Up</span>
                             </Link>
                         </p>
                     </div>

@@ -48,7 +48,7 @@ const RenderField = ({ field, props }: { field: any; props: CustomProps }) => {
         case FormFieldType.INPUT:
             return (
                 <>
-                    <div className='flex rounded-md border border-dark-500 bg-dark-400'>
+                    <div className='flex rounded-md border border-gray-800 bg-dark-400'>
                         {props.iconSrc && (
                             <Image 
                                 src={props.iconSrc}
@@ -67,8 +67,8 @@ const RenderField = ({ field, props }: { field: any; props: CustomProps }) => {
                         </FormControl>
                     </div>
                     {props.description && (
-                        <FormDescription className='mt-1 text-green-500'>
-                            {props.description}
+                        <FormDescription className='mt-1 text-emerald-500'>
+                            <span className='text-12-regular'>{props.description}</span>
                         </FormDescription>
                     )}
                 </>
@@ -89,7 +89,7 @@ const RenderField = ({ field, props }: { field: any; props: CustomProps }) => {
             );
         case FormFieldType.PASSWORD_INPUT:
             return (
-                <div className='flex rounded-md border border-dark-500 bg-dark-400 relative'>
+                <div className='flex rounded-md border border-gray-800 bg-dark-400 relative'>
                     {props.iconSrc && (
                         <Image 
                             src={props.iconSrc}

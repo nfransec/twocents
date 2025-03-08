@@ -10,13 +10,13 @@ export default function SignUpPage() {
           <SignUpForm />
 
           <div className='flex flex-col gap-2 mt-8 justify-center items-center'>
-              <p className='text-14-regular text-dark-600'>
+              <p className='text-14-regular text-emerald-600'>
                   Already have an account?
                   <Link 
                     href='/login'
-                    className='text-white hover:text-green-500'
+                    className='text-white hover:text-emerald-500'
                   >
-                    <span className="font-bold"> Login</span>
+                    <span className=""> Login</span>
                   </Link>
               </p>
           </div>

@@ -70,7 +70,7 @@ export function LoginForm() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 space-y-6">
             <section className="mb-12 space-y-4">
               <h1 className="header text-white text-center">Welcome back 🙏</h1>
-              <p className="text-dark-700 text-center">Enter your email and pwd to login.</p>
+              <p className="text-gray-500 text-center">Enter your email and pwd to login.</p>
             </section>
             
             <CustomFormField
@@ -95,7 +95,7 @@ export function LoginForm() {
               setShowPassword={setShowPassword}
             />
             
-            <Button type="submit" className="w-full bg-green-500 text-white" disabled={isLoading}>
+            <Button type="submit" className="w-full bg-emerald-500 text-white" disabled={isLoading}>
               {isLoading && (
                 <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
               )}

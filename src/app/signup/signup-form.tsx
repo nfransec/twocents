@@ -141,7 +141,7 @@ export function SignUpForm() {
           setShowPassword={setShowConfirmPassword}
         />
           
-        <Button type="submit" className="w-full bg-green-500" disabled={isLoading}>
+        <Button type="submit" className="w-full bg-emerald-500" disabled={isLoading}>
           {isLoading && (
             <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
           )}

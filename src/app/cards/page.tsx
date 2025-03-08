@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { format } from "date-fns"
 import { PaymentScheduler } from '@/components/PaymentScheduler'
 import { CardType } from '@/types/card'
+import LoadingScreen from "@/components/LoadingScreen"
 
 const CardDisplay = ({ card, isActive, index, activeIndex }: { card: CardType; isActive: boolean; index: number; activeIndex: number }) => {
   const getCardStyle = (cardName: string) => {
@@ -64,7 +65,7 @@ const CardDisplay = ({ card, isActive, index, activeIndex }: { card: CardType; i
 
 export default function CardsPage() {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<UserType | null>(null)
   const [cards, setCards] = useState<CardType[]>([])
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false)
@@ -89,8 +90,9 @@ export default function CardsPage() {
   }, [router]);
 
   const fetchCards = async () => {
+    setIsLoading(true)
     try {
-      const response = await axios.get('/api/cards');
+      const response = await axios.get('/api/cards')
       if (response.data.success) {
         const processedCards: CardType[] = response.data.data.map((card: any) => ({
           ...card,
@@ -108,6 +110,8 @@ export default function CardsPage() {
     } catch (error) {
       console.error('Error fetching cards:', error);
       toast.error('Failed to fetch cards');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -225,175 +229,181 @@ export default function CardsPage() {
 
   return (
     <div className="flex flex-col bg-[#1c1c28] text-white min-h-screen">
-      <div className='flex items-center justify-between p-4 bg-zinc-900'>
-        <h1 className='font-extrabold'>Manage your cards</h1>
-        <Button 
-          onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-        >
-          <Plus className="w-4 h-4" />
-          Add Card
-        </Button>
-      </div>
-
-      <header className="p-4 flex justify-between items-center">
-        <ChevronLeft className="w-4 h-4" />
-        <h1 className="text-xl font-bold">My Cards</h1>
-        <Bell className="w-4 h-4" />
-      </header>
-
-      <main className="flex-1 overflow-hidden px-4">
-        <div className="relative mb-4 h-48">
-          <div className="overflow-visible h-full flex items-center justify-center">
-            {cards.map((card, index) => (
-              <CardDisplay
-                key={card._id}
-                card={card}
-                isActive={index === activeCardIndex}
-                index={index}
-                activeIndex={activeCardIndex}
-              />
-            ))}
+      {isLoading ? (
+        <LoadingScreen />
+      ) : (
+        <>
+          <div className='flex items-center justify-between p-4 bg-zinc-900'>
+            <h1 className='font-extrabold'>Manage your cards</h1>
+            <Button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+            >
+              <Plus className="w-4 h-4" />
+              Add Card
+            </Button>
           </div>
-          <button 
-            onClick={handlePrevCard} 
-            className="absolute left-0 top-1/2 transform -translate-y-1/2 z-20 bg-gray-800 bg-opacity-50 rounded-full p-2"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <button 
-            onClick={handleNextCard} 
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 z-20 bg-gray-800 bg-opacity-50 rounded-full p-2"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-        </div>
 
-        <div className="flex justify-center mb-6">
-          {cards.map((_, index) => (
-            <div
-              key={index}
-              className={`w-2 h-2 rounded-full mx-1 ${
-                index === activeCardIndex ? 'bg-emerald-500' : 'bg-gray-600'
-              }`}
-            />
-          ))}
-        </div>
+          <header className="p-4 flex justify-between items-center">
+            <ChevronLeft className="w-4 h-4" />
+            <h1 className="text-xl font-bold">My Cards</h1>
+            <Bell className="w-4 h-4" />
+          </header>
 
-        {cards[activeCardIndex] && (
-          <Card className="border-none bg-gradient-to-r from-slate-800 to-slate-700 text-white">
-            <CardContent className="p-4">
-              <h2 className="text-md font-semibold">More Details</h2>
-              <span className="text-sm text-emerald-400">{cards[activeCardIndex].cardName}</span>
-              <div className="space-y-4 mt-4">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <Lock className="h-5 w-5 mr-2 text-gray-400" />
-                    <span>CVV</span>
-                  </div>
-                  <span className="font-semibold">{cards[activeCardIndex].cvv || '***'}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <Calendar className="h-5 w-5 mr-2 text-gray-400" />
-                    <span>Due Date</span>
-                  </div>
-                  <span className="font-semibold">{formattedBillingDate}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <Banknote className="h-5 w-5 mr-2 text-gray-400" />
-                    <span>Available</span>
-                  </div>
-                  <span className="font-semibold">₹ {(cards[activeCardIndex].cardLimit - cards[activeCardIndex].outstandingAmount).toLocaleString()}</span>
-                </div>
+          <main className="flex-1 overflow-hidden px-4">
+            <div className="relative mb-4 h-48">
+              <div className="overflow-visible h-full flex items-center justify-center">
+                {cards.map((card, index) => (
+                  <CardDisplay
+                    key={card._id}
+                    card={card}
+                    isActive={index === activeCardIndex}
+                    index={index}
+                    activeIndex={activeCardIndex}
+                  />
+                ))}
               </div>
-              <div className="flex gap-2 mt-4">
-                <Button 
-                  onClick={() => handleEditClick(cards[activeCardIndex])} 
-                  className="flex-1 bg-slate-700 hover:bg-slate-600"
-                >
-                  <Pencil className="w-4 h-4 mr-2" />
-                  Edit
-                </Button>
-                <Button 
-                  onClick={() => handleDeleteCard(cards[activeCardIndex]._id)} 
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white mb-2"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              </div>
-              <div className="flex justify-center">
-                <Button
-                  className={`w-full ${
-                    cards[activeCardIndex]?.outstandingAmount === 0 
-                      ? 'bg-green-600/20 text-green-300 cursor-not-allowed hover:bg-green-600/20'
-                      : 'bg-purple-700 hover:bg-purple-600'
+              <button 
+                onClick={handlePrevCard} 
+                className="absolute left-0 top-1/2 transform -translate-y-1/2 z-20 bg-gray-800 bg-opacity-50 rounded-full p-2"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button 
+                onClick={handleNextCard} 
+                className="absolute right-0 top-1/2 transform -translate-y-1/2 z-20 bg-gray-800 bg-opacity-50 rounded-full p-2"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="flex justify-center mb-6">
+              {cards.map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-2 h-2 rounded-full mx-1 ${
+                    index === activeCardIndex ? 'bg-emerald-500' : 'bg-gray-600'
                   }`}
-                  disabled={cards[activeCardIndex]?.outstandingAmount === 0}
-                  onClick={() => handlePayment(cards[activeCardIndex]._id, cards[activeCardIndex].outstandingAmount)}
-                >
-                  {cards[activeCardIndex]?.outstandingAmount === 0 ? (
-                    <>
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      <span className="font-bold">Paid</span>
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Mark as Paid
-                    </>
-                  )}
-                </Button>
-              </div>
-              <div className="mt-4 border-t border-gray-700 pt-4">
-                <h3 className="text-md font-semibold mb-2">Payment Schedule</h3>
-                <PaymentScheduler 
-                  card={cards[activeCardIndex]} 
-                  onUpdate={(updatedCard) => {
-                    setCards(prevCards =>
-                      prevCards.map(card =>
-                        card._id === updatedCard._id ? updatedCard : card
-                      )
-                    )
-                  }} 
                 />
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              ))}
+            </div>
 
-        {topSpendingCard && (
-          <Card className="border-none bg-gradient-to-r from-slate-800 to-slate-700 text-white mt-4">
-            <CardContent className="p-4">
-              <h2 className="text-md font-semibold">Top Card 🎉</h2>
-              <div className="space-y-4 mt-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-3xl font-bold">{topSpendingCard.cardName}</h2>
-                  <span className="text-2xl text-emerald-400">₹ {topSpendingCard.outstandingAmount.toLocaleString()}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </main>
+            {cards[activeCardIndex] && (
+              <Card className="border-none bg-gradient-to-r from-slate-800 to-slate-700 text-white">
+                <CardContent className="p-4">
+                  <h2 className="text-md font-semibold">More Details</h2>
+                  <span className="text-sm text-emerald-400">{cards[activeCardIndex].cardName}</span>
+                  <div className="space-y-4 mt-4">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <Lock className="h-5 w-5 mr-2 text-gray-400" />
+                        <span>CVV</span>
+                      </div>
+                      <span className="font-semibold">{cards[activeCardIndex].cvv || '***'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <Calendar className="h-5 w-5 mr-2 text-gray-400" />
+                        <span>Due Date</span>
+                      </div>
+                      <span className="font-semibold">{formattedBillingDate}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <Banknote className="h-5 w-5 mr-2 text-gray-400" />
+                        <span>Available</span>
+                      </div>
+                      <span className="font-semibold">₹ {(cards[activeCardIndex].cardLimit - cards[activeCardIndex].outstandingAmount).toLocaleString()}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button 
+                      onClick={() => handleEditClick(cards[activeCardIndex])} 
+                      className="flex-1 bg-slate-700 hover:bg-slate-600"
+                    >
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button 
+                      onClick={() => handleDeleteCard(cards[activeCardIndex]._id)} 
+                      className="flex-1 bg-red-500 hover:bg-red-600 text-white mb-2"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
+                  <div className="flex justify-center">
+                    <Button
+                      className={`w-full ${
+                        cards[activeCardIndex]?.outstandingAmount === 0 
+                          ? 'bg-green-600/20 text-green-300 cursor-not-allowed hover:bg-green-600/20'
+                          : 'bg-purple-700 hover:bg-purple-600'
+                      }`}
+                      disabled={cards[activeCardIndex]?.outstandingAmount === 0}
+                      onClick={() => handlePayment(cards[activeCardIndex]._id, cards[activeCardIndex].outstandingAmount)}
+                    >
+                      {cards[activeCardIndex]?.outstandingAmount === 0 ? (
+                        <>
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          <span className="font-bold">Paid</span>
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          Mark as Paid
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <div className="mt-4 border-t border-gray-700 pt-4">
+                    <h3 className="text-md font-semibold mb-2">Payment Schedule</h3>
+                    <PaymentScheduler 
+                      card={cards[activeCardIndex]} 
+                      onUpdate={(updatedCard) => {
+                        setCards(prevCards =>
+                          prevCards.map(card =>
+                            card._id === updatedCard._id ? updatedCard : card
+                          )
+                        )
+                      }} 
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-      <AddCardModal 
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAddCard={handleAddCard}
-      />
-      {selectedCard && (
-        <EditCardModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setSelectedCard(null);
-          }}
-          onEdit={handleUpdateCard}
-          card={selectedCard}
-        />
+            {topSpendingCard && (
+              <Card className="border-none bg-gradient-to-r from-slate-800 to-slate-700 text-white mt-4">
+                <CardContent className="p-4">
+                  <h2 className="text-md font-semibold">Top Card 🎉</h2>
+                  <div className="space-y-4 mt-4">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-3xl font-bold">{topSpendingCard.cardName}</h2>
+                      <span className="text-2xl text-emerald-400">₹ {topSpendingCard.outstandingAmount.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </main>
+
+          <AddCardModal 
+            isOpen={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+            onAddCard={handleAddCard}
+          />
+          {selectedCard && (
+            <EditCardModal
+              isOpen={isEditModalOpen}
+              onClose={() => {
+                setIsEditModalOpen(false);
+                setSelectedCard(null);
+              }}
+              onEdit={handleUpdateCard}
+              card={selectedCard}
+            />
+          )}
+        </>
       )}
     </div>
   )
