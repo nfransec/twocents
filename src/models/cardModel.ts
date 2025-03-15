@@ -61,7 +61,7 @@ const cardSchema = new mongoose.Schema({
   bankName: {
     type: String,
     required: true,
-    enum: ['HDFC', 'Axis', 'ICICI', 'SBI', 'IDFC', 'AU Small Finance']
+    enum: ['HDFC', 'ICICI', 'SBI', 'Axis', 'Amex', 'RBL', 'IDFC', 'AU Small Finance', 'Standard Chartered']
   },
   cardLimit: {
     type: Number,

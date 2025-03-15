@@ -7,7 +7,7 @@ import { cardToBankMapping, CardName } from '@/utils/cardMappings';
 
 const cardSchema = z.object({
   cardName: z.enum(Object.keys(cardToBankMapping) as [CardName, ...CardName[]]),
-  bankName: z.enum(Object.values(cardToBankMapping) as [string, ...string[]]),
+  bankName: z.enum(['HDFC', 'ICICI', 'SBI', 'Axis', 'Amex', 'RBL', 'IDFC', 'AU Small Finance', 'Standard Chartered']),
   cardLimit: z.number(),
   billingDate: z.string(),
   outstandingAmount: z.number(),
