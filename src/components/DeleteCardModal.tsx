@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { CardType } from '@/types/card';
 import { CheckCircle, AlertCircle, Loader2, Trash2 } from 'lucide-react';
@@ -54,7 +54,13 @@ const FeedbackScreen = ({ state, message }: { state: FeedbackState; message: str
 
 export function DeleteCardModal({ isOpen, onClose, onDelete, card }: DeleteCardModalProps) {
   const [feedbackState, setFeedbackState] = useState<FeedbackState>('confirm');
-  const [feedbackMessage, setFeedbackMessage] = useState(`Are you sure you want to delete your ${card.bankName} ${card.cardName} card?`);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  
+  useEffect(() => {
+    if (card) {
+      setFeedbackMessage(`Are you sure you want to delete your ${card.bankName || ''} ${card.cardName || ''} card?`);
+    }
+  }, [card]);
 
   const handleDelete = async () => {
     // Show loading state
@@ -82,7 +88,7 @@ export function DeleteCardModal({ isOpen, onClose, onDelete, card }: DeleteCardM
       // Auto-dismiss error after 2 seconds
       setTimeout(() => {
         setFeedbackState('confirm');
-        setFeedbackMessage(`Are you sure you want to delete your ${card.bankName} ${card.cardName} card?`);
+        setFeedbackMessage(`Are you sure you want to delete your ${card.bankName || ''} ${card.cardName || ''} card?`);
       }, 2000);
     }
   };

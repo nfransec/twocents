@@ -7,16 +7,16 @@ import mongoose from 'mongoose';
 // Increase the max listeners for the MongoDB connection
 mongoose.connection.setMaxListeners(15);  // or a higher number if needed
 
+interface JwtPayload {
+    id: string;
+}
+
 export async function GET(request: NextRequest) {
     try {
         await connectToDatabase();
 
-        const token = request.cookies.get("token")?.value;
-        if(!token) {
-            return NextResponse.json({ error: 'No token found' }, { status: 401 });
-        }
-
-        const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as { id: string };
+        const token = request.cookies.get("token")?.value || "";
+        const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as JwtPayload;
         const userId = decodedToken.id;
 
         const user = await User.findById(userId).select("-password");
@@ -24,9 +24,25 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
+        console.log("User data being sent:", {
+            _id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            username: user.username,
+            phoneNumber: user.phoneNumber
+        });
+
         return NextResponse.json({
-            message: 'User found',
-            data: user,
+            message: 'User found successfully',
+            data: {
+                _id: user._id,
+                fullName: user.fullName,
+                email: user.email,
+                username: user.username,
+                phoneNumber: user.phoneNumber || "",
+                isVerified: user.isVerified,
+                isAdmin: user.isAdmin
+            },
             success: true,
         });
         

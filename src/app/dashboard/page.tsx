@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useState } from 'react'
-import { Bell, ChevronRight, ChevronLeft, Search, ArrowUpRight, ArrowDownRight, Wallet, CreditCard, ArrowDown, BarChart3, PieChart, TrendingUp, Calendar, Pencil, Check, X } from 'lucide-react'
+import { Bell, ChevronRight, ChevronLeft, Search, ArrowUpRight, ArrowDownRight, Wallet, CreditCard, ArrowDown, BarChart3, PieChart, TrendingUp, Calendar, Pencil, Check, X, AlertCircle, CheckCircle } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useRouter } from "next/navigation"
-import { format, parse, subMonths } from 'date-fns'
+import { format, parse, subMonths, differenceInDays } from 'date-fns'
 import {
   LineChart,
   Line,
@@ -27,6 +27,8 @@ import {
   Pie,
   Cell,
 } from 'recharts'
+import LoadingScreen from "@/components/LoadingScreen"
+import { motion } from "framer-motion"
 
 export interface UserType {
   _id: string
@@ -134,6 +136,21 @@ const generateCategoryData = () => {
   ];
 };
 
+// Reuse the card style function from cards page
+const getCardStyle = (cardName: string) => {
+  const name = cardName.toLowerCase()
+  if (name.includes("infinia")) return "bg-teal-700"
+  if (name.includes("amazon")) return "bg-black"
+  if (name.includes("tata")) return "bg-purple-800"
+  if (name.includes("play")) return "bg-orange-500"
+  if (name.includes("ixigo")) return "bg-rose-500"
+  if (name.includes("power")) return "bg-slate-800"
+  if (name.includes("platinum")) return "bg-gray-700"
+  if (name.includes("simply")) return "bg-emerald-600"
+  if (name.includes("gold") || name.includes("mrcc")) return "bg-yellow-600"
+  return "bg-teal-700" // default style
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState<UserType | null>(null)
   const [cards, setCards] = useState<CardType[]>([])
@@ -148,6 +165,8 @@ export default function DashboardPage() {
   const [income, setIncome] = useState(999999.99)
   const [isEditingIncome, setIsEditingIncome] = useState(false)
   const [tempIncome, setTempIncome] = useState('')
+  const [upcomingPayments, setUpcomingPayments] = useState<CardType[]>([])
+  const [recentlyPaid, setRecentlyPaid] = useState<CardType[]>([])
 
   const fetchUser = useCallback(async () => {
     setIsLoading(true)
@@ -163,12 +182,57 @@ export default function DashboardPage() {
   }, [])
 
   const fetchCards = async () => {
+    setIsLoading(true)
     try {
-      const response = await axios.get('/api/cards')
-      setCards(response.data.data)
+      const response = await axios.get("/api/cards")
+      if (response.data.success) {
+        const allCards: CardType[] = response.data.data.map((card: any) => ({
+          ...card,
+          isPaid: card.isPaid || false,
+          outstandingAmount: card.outstandingAmount || 0,
+          cardLimit: card.cardLimit || 0,
+          cardName: card.cardName || "",
+          bankName: card.bankName || "",
+          billingDate: card.billingDate || "",
+          _id: card._id || "",
+          paymentHistory: card.paymentHistory || [],
+        }))
+        
+        setCards(allCards)
+        
+        // Filter cards with outstanding payments
+        const unpaidCards = allCards.filter(card => 
+          !card.isPaid && card.outstandingAmount > 0
+        )
+        
+        // Sort by due date (closest first)
+        unpaidCards.sort((a, b) => {
+          const dateA = getDueDate(a.billingDate)
+          const dateB = getDueDate(b.billingDate)
+          return dateA.getTime() - dateB.getTime()
+        })
+        
+        setUpcomingPayments(unpaidCards)
+        
+        // Get recently paid cards (paid in the last 30 days)
+        const paidCards = allCards.filter(card => 
+          card.isPaid && card.paymentHistory && card.paymentHistory.length > 0
+        )
+        
+        // Sort by most recently paid
+        paidCards.sort((a, b) => {
+          const dateA = new Date(a.paymentHistory[a.paymentHistory.length - 1]?.date || 0)
+          const dateB = new Date(b.paymentHistory[b.paymentHistory.length - 1]?.date || 0)
+          return dateB.getTime() - dateA.getTime()
+        })
+        
+        setRecentlyPaid(paidCards.slice(0, 3)) // Show only the 3 most recently paid
+      }
     } catch (error) {
-      console.error('Error fetching cards:', error)
-      toast.error('Failed to fetch cards')
+      console.error("Error fetching cards:", error)
+      toast.error("Failed to fetch cards")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -254,63 +318,118 @@ export default function DashboardPage() {
   // Calculate percentage change
   const percentageChange = calculatePercentageChange(totalDue, lastMonthPayments);
 
-  // Get upcoming payments
-  const getUpcomingPayments = () => {
-    const today = new Date();
-    const nextMonth = new Date();
-    nextMonth.setMonth(today.getMonth() + 1);
+  // Calculate due date based on billing date
+  const getDueDate = (billingDate: string) => {
+    if (!billingDate) return new Date()
     
-    return cards
-      .filter(card => !card.isPaid && card.outstandingAmount > 0)
-      .map(card => {
-        // Parse billing date to get the day
-        let paymentDay = 5; // Default
-        try {
-          if (card.billingDate) {
-            const billingDate = new Date(card.billingDate);
-            paymentDay = billingDate.getDate();
-          }
-        } catch (e) {
-          console.error('Error parsing billing date:', e);
-        }
-        
-        // Create payment due date (same day next month)
-        const dueDate = new Date();
-        dueDate.setDate(paymentDay);
-        if (dueDate < today) {
-          dueDate.setMonth(dueDate.getMonth() + 1);
-        }
-        
-        return {
-          cardName: card.cardName,
-          bankName: card.bankName,
-          amount: card.outstandingAmount,
-          dueDate
-        };
-      })
-      .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
-  };
-
-  const upcomingPayments = getUpcomingPayments();
-
-  const handleUpdateIncome = async () => {
     try {
-      const newIncome = parseFloat(tempIncome)
-      if (isNaN(newIncome) || newIncome < 0) {
-        toast.error('Please enter a valid income amount')
-        return
+      // Parse the billing date (format: "DD MMM" like "05 Oct")
+      const parts = billingDate.split(' ')
+      if (parts.length < 2) return new Date() // Handle invalid format
+      
+      const day = parseInt(parts[0])
+      const monthStr = parts[1]
+      
+      // Map month abbreviation to month number (0-11)
+      const monthMap: {[key: string]: number} = {
+        'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
       }
       
-      // Here you would typically make an API call to update the income
-      // For example: await axios.post('/api/user/update-income', { income: newIncome })
+      const monthNum = monthMap[monthStr] || new Date().getMonth()
       
-      setIncome(newIncome)
-      setIsEditingIncome(false)
-      toast.success('Income updated successfully')
+      const today = new Date()
+      const currentMonth = today.getMonth()
+      const currentYear = today.getFullYear()
+      
+      // Calculate the billing date for current month
+      let billingDateObj = new Date(currentYear, monthNum, day)
+      
+      // If billing date is in the past, use next month's billing date
+      if (billingDateObj < today && monthNum <= currentMonth) {
+        // If we're in December, move to January of next year
+        if (monthNum === 11) {
+          billingDateObj = new Date(currentYear + 1, 0, day)
+        } else {
+          billingDateObj = new Date(currentYear, monthNum + 1, day)
+        }
+      }
+      
+      // Due date is billing date + 20 days (payment grace period)
+      const dueDate = new Date(billingDateObj)
+      dueDate.setDate(billingDateObj.getDate() + 20)
+      
+      return dueDate
     } catch (error) {
-      console.error('Error updating income:', error)
-      toast.error('Failed to update income')
+      console.error("Error parsing billing date:", error)
+      return new Date() // Return today's date as fallback
     }
+  }
+  
+  // Calculate days remaining until due date
+  const getDaysRemaining = (billingDate: string) => {
+    const dueDate = getDueDate(billingDate)
+    const today = new Date()
+    return Math.max(0, differenceInDays(dueDate, today))
+  }
+  
+  // Format due date for display
+  const formatDueDate = (billingDate: string) => {
+    const dueDate = getDueDate(billingDate)
+    return format(dueDate, 'dd MMM yyyy')
+  }
+  
+  // Handle marking a card as paid
+  const handlePayNow = async (cardId: string, amount: number) => {
+    try {
+      const card = cards.find(c => c._id === cardId)
+      if (!card) return
+      
+      const updatedCard = {
+        ...card,
+        isPaid: true,
+        outstandingAmount: 0,
+        paymentHistory: [
+          ...(card.paymentHistory || []),
+          {
+            amount: amount,
+            date: new Date().toISOString(),
+            billingMonth: format(new Date(), 'MMMM yyyy')
+          }
+        ]
+      }
+      
+      const response = await axios.put(`/api/cards/${cardId}`, updatedCard)
+      
+      if (response.data.success) {
+        toast.success(`Payment of ₹${amount.toLocaleString()} marked as complete`)
+        
+        // Update local state
+        setCards(prevCards => 
+          prevCards.map(c => c._id === cardId ? response.data.data : c)
+        )
+        
+        // Update upcoming payments
+        setUpcomingPayments(prevPayments => 
+          prevPayments.filter(p => p._id !== cardId)
+        )
+        
+        // Update recently paid
+        setRecentlyPaid(prevPaid => [response.data.data, ...prevPaid].slice(0, 3))
+      }
+    } catch (error) {
+      console.error("Error marking payment:", error)
+      toast.error("Failed to process payment")
+    }
+  }
+  
+  // Navigate to card details
+  const navigateToCard = (cardId: string) => {
+    router.push(`/cards?id=${cardId}`)
+  }
+
+  if (isLoading) {
+    return <LoadingScreen />
   }
 
   return (
@@ -340,162 +459,77 @@ export default function DashboardPage() {
             
             <TabsContent value="overview" className="space-y-6">
               {/* Summary Cards */}
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Card className="border-none bg-gradient-to-r from-emerald-500 to-teal-600">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-bold">Total Income</CardTitle>
-                    <Wallet className="h-4 w-4 text-white opacity-70" />
-                  </CardHeader>
-                  <CardContent>
-                    {isEditingIncome ? (
-                      <div className="flex items-center gap-2">
-                        <div className="relative flex-1">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-emerald-800">₹</span>
-                          <Input
-                            className="pl-6 bg-emerald-400/50 border-emerald-300 text-white placeholder:text-emerald-100"
-                            placeholder="Enter income"
-                            value={tempIncome}
-                            onChange={(e) => setTempIncome(e.target.value)}
-                            autoFocus
-                          />
-                        </div>
-                        <Button 
-                          size="icon" 
-                          variant="ghost" 
-                          className="h-8 w-8 bg-emerald-400/50 hover:bg-emerald-400/70 text-white"
-                          onClick={handleUpdateIncome}
-                        >
-                          <Check className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          size="icon" 
-                          variant="ghost" 
-                          className="h-8 w-8 bg-emerald-400/50 hover:bg-emerald-400/70 text-white"
-                          onClick={() => setIsEditingIncome(false)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <div className="text-2xl font-bold text-white">₹{income.toLocaleString()}</div>
-                          <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            className="h-6 w-6 bg-emerald-400/30 hover:bg-emerald-400/50 text-white"
-                            onClick={() => {
-                              setTempIncome(income.toString())
-                              setIsEditingIncome(true)
-                            }}
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <div className="flex items-center mt-1">
-                          <ArrowUpRight className="h-4 w-4 text-emerald-100" />
-                          <span className="text-xs text-emerald-100 ml-1">+12% from last month</span>
-                        </div>
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
-                
-                <Card className="border-none bg-gradient-to-r from-rose-500 to-red-600">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-bold">Total Due</CardTitle>
-                    <CreditCard className="h-4 w-4 text-white opacity-70" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">₹{totalDue.toLocaleString()}</div>
-                    <div className="flex items-center mt-1">
-                      {percentageChange > 0 ? (
-                        <>
-                          <ArrowUpRight className="h-4 w-4 text-red-100" />
-                          <span className="text-xs text-red-100 ml-1">
-                            +{percentageChange.toFixed(1)}% from last month
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <ArrowDownRight className="h-4 w-4 text-green-100" />
-                          <span className="text-xs text-green-100 ml-1">
-                            {percentageChange.toFixed(1)}% from last month
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card className="border-none bg-gradient-to-r from-purple-600 to-indigo-600">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-bold">Monthly Payments</CardTitle>
-                    <Calendar className="h-4 w-4 text-white opacity-70" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-white">
-                      ₹{calculateMonthlyPayments(cards).toLocaleString()}
-                    </div>
-                    <p className="text-xs text-purple-100 mt-1">
-                      Total credit card payments this month
-                    </p>
-                  </CardContent>
-                </Card>
+              <div className="mb-6">
+                {/* Keep calculations but remove UI */}
+                {/* These calculations are still being used but not displayed */}
+                {/* totalDue calculation */}
+                {/* percentageChange calculation */}
+                {/* calculateMonthlyPayments calculation */}
               </div>
 
-
-        
-
-              {/* Credit Card Utilization */}
-              <Card className="border-none bg-[#252536]">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold flex items-center">
-                    <TrendingUp className="mr-2 h-5 w-5 text-primary" />
-                    Credit Card Utilization
-                  </CardTitle>
-                  <CardDescription>
-                    How much of your available credit you're using
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {cards.map((card) => {
-                      const utilization = (card.outstandingAmount / card.cardLimit) * 100;
-                      let utilizationColor = 'bg-green-500';
-                      if (utilization > 30 && utilization <= 70) {
-                        utilizationColor = 'bg-yellow-500';
-                      } else if (utilization > 70) {
-                        utilizationColor = 'bg-red-500';
-                      }
-                      
-                      return (
-                        <div key={card._id} className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <p className="font-medium">{card.cardName}</p>
-                              <p className="text-xs text-gray-400">{card.bankName}</p>
+              {/* Replace with this: */}
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold mb-4">Upcoming Payments</h2>
+                
+                <div className="space-y-4">
+                  {upcomingPayments.length > 0 ? (
+                    upcomingPayments.map((card) => (
+                      <Card key={card._id} className="bg-[#252536] border-gray-700 overflow-hidden">
+                        <CardContent className="p-0">
+                          <div className="flex items-stretch">
+                            {/* Card color strip */}
+                            <div className={`w-2 ${getCardStyle(card.cardName)}`}></div>
+                            
+                            <div className="flex-1 p-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h3 className="font-semibold">{card.cardName}</h3>
+                                  <p className="text-sm text-gray-400">{card.bankName}</p>
+                                </div>
+                                <div>
+                                  <p className="font-bold text-lg">₹{card.outstandingAmount.toLocaleString()}</p>
+                                  <div className="flex items-center justify-end">
+                                    <p className="text-xs text-gray-400">Due: {formatDueDate(card.billingDate)}</p>
+                                    {getDaysRemaining(card.billingDate) <= 5 && (
+                                      <AlertCircle className="w-4 h-4 ml-1 text-red-500" />
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className={`mt-3 text-sm ${
+                                getDaysRemaining(card.billingDate) <= 3 
+                                  ? 'text-red-400' 
+                                  : getDaysRemaining(card.billingDate) <= 7 
+                                    ? 'text-yellow-400' 
+                                    : 'text-green-400'
+                              }`}>
+                                {getDaysRemaining(card.billingDate)} days remaining
+                              </div>
+                              
+                              <div className="mt-3">
+                                <Button 
+                                  onClick={() => handlePayNow(card._id, card.outstandingAmount)}
+                                  className="bg-purple-700 hover:bg-purple-600 text-white"
+                                >
+                                  Pay Now
+                                </Button>
+                              </div>
                             </div>
-                            <p className="text-sm font-semibold">
-                              {utilization.toFixed(0)}% used
-                            </p>
                           </div>
-                          <div className="w-full bg-gray-700 rounded-full h-2.5">
-                            <div 
-                              className={`h-2.5 rounded-full ${utilizationColor}`}
-                              style={{ width: `${Math.min(100, utilization)}%` }}
-                            ></div>
-                          </div>
-                          <div className="flex justify-between text-xs text-gray-400">
-                            <span>₹{card.outstandingAmount.toLocaleString()}</span>
-                            <span>₹{card.cardLimit.toLocaleString()}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <Card className="bg-[#252536] border-gray-700">
+                      <CardContent className="p-6 flex flex-col items-center justify-center">
+                        <CheckCircle className="w-12 h-12 text-green-500 mb-2" />
+                        <p className="text-center text-gray-400">All caught up! No pending payments.</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </div>
             </TabsContent>
             
             <TabsContent value="transactions">

@@ -415,39 +415,49 @@ export default function CardsPage() {
 
                   {/* Action buttons */}
                   {cards[activeCardIndex] && (
-                    <div className="flex justify-center gap-4 mb-6">
-                      <Button 
-                        onClick={() => handleEditClick(cards[activeCardIndex])} 
-                        variant="outline"
-                        className="w-12 h-12 rounded-full p-0 border-gray-600 hover:bg-[#2c2c40] text-white"
-                        title="Edit"
-                      >
-                        <Pencil className="w-5 h-5" />
-                      </Button>
-                      <Button
-                        className={`w-12 h-12 rounded-full p-0 ${
-                          cards[activeCardIndex]?.outstandingAmount === 0 
-                            ? 'bg-green-600/20 text-green-300 hover:bg-green-600/20 cursor-not-allowed'
-                            : 'bg-purple-700 hover:bg-purple-600'
-                        }`}
-                        disabled={cards[activeCardIndex]?.outstandingAmount === 0}
-                        onClick={() => handlePayment(cards[activeCardIndex]._id, cards[activeCardIndex].outstandingAmount)}
-                        title={cards[activeCardIndex]?.outstandingAmount === 0 ? "Paid" : "Mark as Paid"}
-                      >
-                        {cards[activeCardIndex]?.outstandingAmount === 0 ? (
-                          <CheckCircle className="w-5 h-5" />
-                        ) : (
-                          <CreditCard className="w-5 h-5" />
-                        )}
-                      </Button>
-                      <Button 
-                        onClick={() => handleDeleteClick(cards[activeCardIndex])} 
-                        variant="outline"
-                        className="w-12 h-12 rounded-full p-0 border-red-500 bg-transparent hover:bg-red-500/20 text-red-500"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </Button>
+                    <div className="flex justify-center gap-8 mb-6">
+                      <div className="flex flex-col items-center">
+                        <Button 
+                          onClick={() => handleEditClick(cards[activeCardIndex])} 
+                          variant="outline"
+                          className="w-12 h-12 rounded-full p-0 border-gray-600 hover:bg-[#2c2c40] text-white"
+                        >
+                          <Pencil className="w-5 h-5" />
+                        </Button>
+                        <span className="text-xs text-white mt-2">Edit</span>
+                      </div>
+                      
+                      <div className="flex flex-col items-center">
+                        <Button
+                          className={`w-12 h-12 rounded-full p-0 ${
+                            cards[activeCardIndex]?.outstandingAmount === 0 
+                              ? 'bg-green-600/20 text-green-300 hover:bg-green-600/20 cursor-not-allowed'
+                              : 'bg-purple-700 hover:bg-purple-600'
+                          }`}
+                          disabled={cards[activeCardIndex]?.outstandingAmount === 0}
+                          onClick={() => handlePayment(cards[activeCardIndex]._id, cards[activeCardIndex].outstandingAmount)}
+                        >
+                          {cards[activeCardIndex]?.outstandingAmount === 0 ? (
+                            <CheckCircle className="w-5 h-5" />
+                          ) : (
+                            <CreditCard className="w-5 h-5" />
+                          )}
+                        </Button>
+                        <span className={`text-xs ${cards[activeCardIndex]?.outstandingAmount === 0 ? "text-green-400" : "text-white"} mt-2`}>
+                          {cards[activeCardIndex]?.outstandingAmount === 0 ? "Paid" : "Pay"}
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-col items-center">
+                        <Button 
+                          onClick={() => handleDeleteClick(cards[activeCardIndex])} 
+                          variant="outline"
+                          className="w-12 h-12 rounded-full p-0 border-red-500 bg-transparent hover:bg-red-500/20 text-red-500"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </Button>
+                        <span className="text-xs text-white mt-2">Delete</span>
+                      </div>
                     </div>
                   )}
 
@@ -471,8 +481,8 @@ export default function CardsPage() {
                           </Button>
                         </div>
 
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center py-1 border-b border-gray-700">
                             <span className="text-purple-400">Card Limit</span>
                             <span className="font-medium">₹{cards[activeCardIndex].cardLimit.toLocaleString()}</span>
                           </div>
@@ -626,6 +636,7 @@ export default function CardsPage() {
             />
           )}
           <div className="fixed bottom-0 left-0 right-0 bg-[#1c1c28] border-t border-gray-800 py-3 px-6 flex justify-between items-center">
+            {/* Home icon */}
             <div className="flex flex-col items-center">
               <div className="p-1">
                 <svg
@@ -647,7 +658,11 @@ export default function CardsPage() {
               <span className="text-xs text-gray-400">Home</span>
             </div>
 
-            <div className="flex flex-col items-center">
+            {/* Dashboard icon - Update this to make it clickable */}
+            <div 
+              className="flex flex-col items-center cursor-pointer" 
+              onClick={() => router.push('/dashboard')}
+            >
               <div className="p-1">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -667,9 +682,10 @@ export default function CardsPage() {
                   <path d="M8 17v-3"></path>
                 </svg>
               </div>
-              <span className="text-xs text-gray-400">Statistics</span>
+              <span className="text-xs text-gray-400">Dashboard</span>
             </div>
 
+            {/* Cards icon */}
             <div className="flex flex-col items-center">
               <div className="p-1">
                 <svg
@@ -691,7 +707,11 @@ export default function CardsPage() {
               <span className="text-xs text-emerald-500 font-medium">Cards</span>
             </div>
 
-            <div className="flex flex-col items-center">
+            {/* Account icon */}
+            <div 
+              className="flex flex-col items-center cursor-pointer"
+              onClick={() => router.push('/profile')}
+            >
               <div className="p-1">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

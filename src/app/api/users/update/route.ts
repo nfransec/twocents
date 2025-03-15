@@ -2,12 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/database/database";
 import User from "@/models/userModel";
 import jwt from "jsonwebtoken";
-import { z } from 'zod';
-
-const updateSchema = z.object({
-  fullName: z.string().min(2).optional(),
-  email: z.string().email().optional(),
-});
 
 interface JwtPayload {
     id: string;
@@ -22,32 +16,48 @@ export async function PUT(request: NextRequest) {
     const userId = decodedToken.id;
 
     const reqBody = await request.json();
-    const validatedData = updateSchema.parse(reqBody);
+    const { fullName, email, phoneNumber } = reqBody;
 
-    const user = await User.findById(userId);
-    if (!user) {
+    console.log("Update request body:", reqBody);
+
+    // Use findByIdAndUpdate to ensure the field is created if it doesn't exist
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          ...(fullName && { fullName }),
+          ...(email && { email }),
+          // Always set phoneNumber even if it's empty string
+          phoneNumber: phoneNumber || ""
+        }
+      },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!updatedUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Only update fields that have changed
-    if (validatedData.fullName) user.fullName = validatedData.fullName;
-    if (validatedData.email) user.email = validatedData.email;
-
-    await user.save();
+    console.log("Updated user:", {
+      fullName: updatedUser.fullName,
+      email: updatedUser.email,
+      phoneNumber: updatedUser.phoneNumber
+    });
 
     return NextResponse.json({
       message: "User updated successfully",
       data: {
-        fullName: user.fullName,
-        email: user.email,
-        username: user.username,
+        _id: updatedUser._id,
+        fullName: updatedUser.fullName,
+        email: updatedUser.email,
+        username: updatedUser.username,
+        phoneNumber: updatedUser.phoneNumber || "",
+        isVerified: updatedUser.isVerified,
+        isAdmin: updatedUser.isAdmin
       },
       success: true,
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
-    }
     console.error(error);
     return NextResponse.json({ error: "An error occurred while updating the user" }, { status: 500 });
   }

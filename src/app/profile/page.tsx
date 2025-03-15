@@ -35,6 +35,14 @@ export default function ProfilePage() {
   });
   const appVersion = 'v1.15.0325';
   const [activePage, setActivePage] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedUser, setEditedUser] = useState<Partial<UserType>>({
+    fullName: '',
+    email: '',
+    username: '',
+    dateOfBirth: '',
+  });
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleError = (error: unknown) => {
     if (axios.isAxiosError(error)) {
@@ -57,7 +65,15 @@ export default function ProfilePage() {
     try {
       const res = await axios.get('/api/users/me')
       const userData = res.data.data
+      console.log('User data from API:', userData)
       setUser(userData)
+      
+      setEditedUser({
+        fullName: userData.fullName || '',
+        email: userData.email || '',
+        username: userData.username || '',
+        //dateOfBirth: userData.dateOfBirth || '',
+      })
     } catch (error) {
       handleError(error)
     } finally {
@@ -68,6 +84,17 @@ export default function ProfilePage() {
   useEffect(() => {
     getUserDetails()
   }, [getUserDetails])
+
+  useEffect(() => {
+    if (user) {
+      setEditedUser({
+        fullName: user.fullName || '',
+        email: user.email || '',
+        username: user.username || '',
+        //dateOfBirth: user.dateOfBirth || '',
+      });
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -122,10 +149,94 @@ export default function ProfilePage() {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setEditedUser(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    setIsEditing(true);
+  };
+
+  const handleSaveChanges = async () => {
+    setIsSaving(true);
+    try {
+      console.log('Sending data to API:', editedUser)
+      const response = await axios.put('/api/users/update', editedUser);
+      if (response.data.success) {
+        toast.success('Profile updated successfully');
+        
+        const updatedUser = response.data.data;
+        console.log('Response data:', updatedUser)
+        
+        setUser(prev => ({
+          ...prev,
+          fullName: updatedUser.fullName || prev.fullName,
+          email: updatedUser.email || prev.email,
+          username: updatedUser.username || prev.username,
+          //dateOfBirth: updatedUser.dateOfBirth || prev.dateOfBirth,
+        }));
+        
+        setIsEditing(false);
+      } else {
+        toast.error('Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-[#1c1c28]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      <div className="flex flex-col justify-center items-center h-screen bg-[#1c1c28]">
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <g>
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#8b5cf6" strokeWidth="8" strokeLinecap="round">
+              <animate 
+                attributeName="stroke-dasharray" 
+                from="0 282.7" 
+                to="282.7 0" 
+                dur="2s" 
+                repeatCount="indefinite" 
+              />
+              <animate 
+                attributeName="stroke-dashoffset" 
+                from="0" 
+                to="282.7" 
+                dur="2s" 
+                repeatCount="indefinite" 
+              />
+            </circle>
+            <circle cx="50" cy="50" r="30" fill="#8b5cf6" opacity="0.4">
+              <animate 
+                attributeName="r" 
+                from="30" 
+                to="35" 
+                dur="1s" 
+                repeatCount="indefinite" 
+                keyTimes="0;0.5;1" 
+                values="30;35;30" 
+                keySplines="0.5 0 0.5 1;0.5 0 0.5 1" 
+                calcMode="spline" 
+              />
+              <animate 
+                attributeName="opacity" 
+                from="0.4" 
+                to="0.2" 
+                dur="1s" 
+                repeatCount="indefinite" 
+                keyTimes="0;0.5;1" 
+                values="0.4;0.2;0.4" 
+                keySplines="0.5 0 0.5 1;0.5 0 0.5 1" 
+                calcMode="spline" 
+              />
+            </circle>
+          </g>
+        </svg>
+        <p className="mt-4 text-emerald-500 font-medium">Loading your treasures...</p>
       </div>
     );
   }
@@ -149,7 +260,7 @@ export default function ProfilePage() {
               >
                 <ArrowLeft className="h-6 w-6 text-white" />
               </Button>
-              <h1 className="text-2xl font-bold ml-2">Settings</h1>
+              <h1 className="text-2xl font-bold ml-2">Profile</h1>
             </div>
 
             <div className="p-4">
@@ -247,7 +358,10 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Terms and Conditions */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-700 bg-[#2a2a3c] cursor-pointer">
+                <div 
+                  className="flex items-center justify-between p-4 border-b border-gray-700 bg-[#2a2a3c] cursor-pointer"
+                  onClick={() => setActivePage('terms')}
+                >
                   <div className="flex items-center">
                     <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 text-yellow-500">
@@ -260,7 +374,10 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Privacy Policy */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-700 bg-[#2a2a3c] cursor-pointer">
+                <div 
+                  className="flex items-center justify-between p-4 border-b border-gray-700 bg-[#2a2a3c] cursor-pointer"
+                  onClick={() => setActivePage('privacy')}
+                >
                   <div className="flex items-center">
                     <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 text-yellow-500">
@@ -318,44 +435,75 @@ export default function ProfilePage() {
               <p className="text-gray-400">View your personal details</p>
             </div>
 
-            <div className="px-6 py-0">
-              
-                <div className="mb-4">
-                  <p className="text-gray-400 mb-1">First name</p>
-                  <div className="p-4 bg-[#252536] rounded-lg border border-gray-700">
-                    {getFirstName()}
-                  </div>
-                </div>
-                
-                <div className="mb-4">
-                  <p className="text-gray-400 mb-1">Last name</p>
-                <div className="p-4 bg-[#252536] rounded-lg border border-gray-700">
-                  {getLastName()}
-                </div>
-              </div>
-        
-
-              {/* <h3 className="text-lg font-bold mb-4">Date of birth</h3>
+            <div className="px-2 py-0">
               <div className="mb-4">
-                <div className="p-4 bg-[#252536] rounded-lg border border-gray-700">
-                  {formatDateOfBirth() || 'Not provided'}
-                </div>
-              </div> */}
-
+                <p className="text-gray-400 mb-1">Name</p>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={editedUser.fullName}
+                  onChange={handleInputChange}
+                  className="p-4 w-full bg-[#252536] rounded-lg border border-gray-700 text-white"
+                  placeholder="Enter your full name"
+                />
+              </div>
+              
+              <div className="mb-4">
+                <p className="text-gray-400 mb-1">Username</p>
+                <input
+                  type="text"
+                  name="username"
+                  value={editedUser.username}
+                  onChange={handleInputChange}
+                  className="p-4 w-full bg-[#252536] rounded-lg border border-gray-700 text-white"
+                  placeholder="Enter your username"
+                  disabled
+                />
+              </div>
+              
               <div className="mb-4">
                 <p className="text-gray-400 mb-1">Email</p>
-                <div className="p-4 bg-[#252536] rounded-lg border border-gray-700">
-                  {user.email || 'Not provided'}
-                </div>
+                <input
+                  type="email"
+                  name="email"
+                  value={editedUser.email}
+                  onChange={handleInputChange}
+                  className="p-4 w-full bg-[#252536] rounded-lg border border-gray-700 text-white"
+                  placeholder="Enter your email"
+                />
               </div>
+              
+              {/* <div className="mb-4">
+                <p className="text-gray-400 mb-1">Date of Birth</p>
+                <input
+                  type="date"
+                  name="dateOfBirth"
+                  value={editedUser.dateOfBirth ? new Date(editedUser.dateOfBirth).toISOString().split('T')[0] : ''}
+                  onChange={handleInputChange}
+                  className="p-4 w-full bg-[#252536] rounded-lg border border-gray-700 text-white"
+                  placeholder="Enter your date of birth"
+                />
+              </div> */}
 
-              <div className="mb-4">
-                <p className="text-gray-400 mb-1">Phone Number</p>
-                <div className="p-4 bg-[#252536] rounded-lg border border-gray-700">
-                  {user.phoneNumber || 'Not provided'}
-                </div>
-              </div>
-
+              {isEditing && (
+                <Button
+                  onClick={handleSaveChanges}
+                  disabled={isSaving}
+                  className="w-full bg-purple-700 hover:bg-purple-600 text-white mt-4"
+                >
+                  {isSaving ? (
+                    <div className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Saving...
+                    </div>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </Button>
+              )}
             </div>
           </motion.div>
         )}
@@ -387,6 +535,172 @@ export default function ProfilePage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <GmailIntegration />
+                </CardContent>
+              </Card>
+            </div>
+          </motion.div>
+        )}
+
+        {activePage === 'terms' && (
+          <motion.div
+            key="terms"
+            initial={{ opacity: 0, x: 300 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 300 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="p-4"
+          >
+            <div className="flex flex-col">
+              <button 
+                onClick={() => setActivePage(null)}
+                className="flex items-center text-white mb-6"
+              >
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                <span>Back</span>
+              </button>
+
+              <h1 className="text-2xl font-bold mb-4">Terms and Conditions</h1>
+              
+              <Card className="bg-[#2a2a3c] border-gray-700">
+                <CardContent className="pt-6">
+                  <div className="space-y-4 text-white">
+                    <h2 className="text-xl font-semibold">TwoCent Terms of Service</h2>
+                    <p className="text-gray-300">Last Updated: March 2025</p>
+                    
+                    <div className="space-y-4 mt-4">
+                      <h3 className="text-lg font-medium">1. Introduction</h3>
+                      <p>Welcome to TwoCent ("we," "our," or "us"). By accessing or using our application, you agree to be bound by these Terms and Conditions.</p>
+                      
+                      <h3 className="text-lg font-medium">2. Services Description</h3>
+                      <p>TwoCent is a financial management application that helps users track their credit card information, billing cycles, and payment due dates. Our service may analyze your email to extract relevant credit card information but does not store sensitive data such as card numbers, CVV codes, or PINs.</p>
+                      
+                      <h3 className="text-lg font-medium">3. Account Registration</h3>
+                      <p>To use TwoCent, you must create an account with accurate information. You are responsible for maintaining the confidentiality of your account credentials and for all activities under your account.</p>
+                      
+                      <h3 className="text-lg font-medium">4. User Responsibilities</h3>
+                      <p>You agree to:</p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li>Provide accurate information</li>
+                        <li>Use the service for lawful purposes only</li>
+                        <li>Not attempt to access data not intended for you</li>
+                        <li>Not use the service to conduct fraudulent activities</li>
+                      </ul>
+                      
+                      <h3 className="text-lg font-medium">5. Data Usage</h3>
+                      <p>We collect and process information as described in our Privacy Policy. By using TwoCent, you consent to such processing and warrant that all data provided by you is accurate.</p>
+                      
+                      <h3 className="text-lg font-medium">6. Intellectual Property</h3>
+                      <p>All content, features, and functionality of TwoCent, including but not limited to text, graphics, logos, and software, are owned by us and protected by intellectual property laws.</p>
+                      
+                      <h3 className="text-lg font-medium">7. Disclaimer of Warranties</h3>
+                      <p>TwoCent is provided "as is" without warranties of any kind. We do not guarantee that the service will be error-free or uninterrupted.</p>
+                      
+                      <h3 className="text-lg font-medium">8. Limitation of Liability</h3>
+                      <p>We shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the service.</p>
+                      
+                      <h3 className="text-lg font-medium">9. Termination</h3>
+                      <p>We may terminate or suspend your account and access to TwoCent at our sole discretion, without notice, for conduct that we believe violates these Terms or is harmful to other users, us, or third parties.</p>
+                      
+                      <h3 className="text-lg font-medium">10. Changes to Terms</h3>
+                      <p>We may revise these Terms at any time. By continuing to use TwoCent after such changes, you agree to be bound by the revised Terms.</p>
+                      
+                      <h3 className="text-lg font-medium">11. Governing Law</h3>
+                      <p>These Terms shall be governed by the laws of the jurisdiction in which TwoCent operates, without regard to its conflict of law provisions.</p>
+                      
+                      <h3 className="text-lg font-medium">12. Contact Information</h3>
+                      <p>For questions about these Terms, please contact us at <span className="text-yellow-500">nfransec@gmail.com</span></p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </motion.div>
+        )}
+
+        {activePage === 'privacy' && (
+          <motion.div
+            key="privacy"
+            initial={{ opacity: 0, x: 300 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 300 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="p-4"
+          >
+            <div className="flex flex-col">
+              <button 
+                onClick={() => setActivePage(null)}
+                className="flex items-center text-white mb-6"
+              >
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                <span>Back</span>
+              </button>
+
+              <h1 className="text-2xl font-bold mb-4">Privacy Policy</h1>
+              
+              <Card className="bg-[#2a2a3c] border-gray-700">
+                <CardContent className="pt-6">
+                  <div className="space-y-4 text-white">
+                    <h2 className="text-xl font-semibold">TwoCent Privacy Policy</h2>
+                    <p className="text-gray-300">Last Updated: March 2025</p>
+                    
+                    <div className="space-y-4 mt-4">
+                      <h3 className="text-lg font-medium">1. Introduction</h3>
+                      <p>At TwoCent, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our application.</p>
+                      
+                      <h3 className="text-lg font-medium">2. Information We Collect</h3>
+                      <p>We collect the following types of information:</p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li><strong>Account Information:</strong> Name, email address and username.</li>
+                        <li><strong>Credit Card Information:</strong> Card type, issuing bank, billing date, and payment due date. We do NOT collect or store card numbers, CVV codes, PINs, or other sensitive authentication data.</li>
+                        <li><strong>Email Data:</strong> With your permission, we may scan your emails to extract credit card billing information.</li>
+                        <li><strong>Usage Data:</strong> Information about how you use our application.</li>
+                      </ul>
+                      
+                      <h3 className="text-lg font-medium">3. How We Use Your Information</h3>
+                      <p>We use the collected information for various purposes:</p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li>To provide and maintain our service</li>
+                        <li>To notify you about upcoming credit card payment due dates</li>
+                        <li>To improve our application and user experience</li>
+                        <li>To communicate with you about updates or changes to our service</li>
+                        <li>To detect, prevent, and address technical issues</li>
+                      </ul>
+                      
+                      <h3 className="text-lg font-medium">4. Data Security</h3>
+                      <p>We implement appropriate security measures to protect your personal information. However, no method of transmission over the Internet or electronic storage is 100% secure, and we cannot guarantee absolute security.</p>
+                      
+                      <h3 className="text-lg font-medium">5. Email Scanning</h3>
+                      <p>If you choose to connect your email account, our application will scan your emails to identify credit card statements and extract relevant billing information. We do not read or store the content of your personal emails unrelated to credit card statements.</p>
+                      
+                      <h3 className="text-lg font-medium">6. Data Sharing and Disclosure</h3>
+                      <p>We do not sell your personal information. We may share your information in the following situations:</p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li>With service providers who assist us in operating our application</li>
+                        <li>To comply with legal obligations</li>
+                        <li>To protect and defend our rights or property</li>
+                        <li>With your consent or at your direction</li>
+                      </ul>
+                      
+                      <h3 className="text-lg font-medium">7. Your Data Rights</h3>
+                      <p>Depending on your location, you may have rights regarding your personal information, including:</p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li>Accessing your personal information</li>
+                        <li>Correcting inaccurate information</li>
+                        <li>Deleting your information</li>
+                        <li>Restricting or objecting to processing</li>
+                        <li>Data portability</li>
+                      </ul>
+                      
+                      <h3 className="text-lg font-medium">8. Children's Privacy</h3>
+                      <p>Our service is not intended for individuals under the age of 18. We do not knowingly collect personal information from children.</p>
+                      
+                      <h3 className="text-lg font-medium">9. Changes to This Privacy Policy</h3>
+                      <p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.</p>
+                      
+                      <h3 className="text-lg font-medium">10. Contact Us</h3>
+                      <p>If you have any questions about this Privacy Policy, please contact us at <span className="text-yellow-500">nfransec@gmail.com</span></p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
