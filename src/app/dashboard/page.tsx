@@ -221,8 +221,8 @@ export default function DashboardPage() {
         
         // Sort by most recently paid
         paidCards.sort((a, b) => {
-          const dateA = new Date(a.paymentHistory[a.paymentHistory.length - 1]?.date || 0)
-          const dateB = new Date(b.paymentHistory[b.paymentHistory.length - 1]?.date || 0)
+          const dateA = new Date(a.paymentHistory?.[a.paymentHistory?.length - 1]?.date || 0)
+          const dateB = new Date(b.paymentHistory?.[b.paymentHistory?.length - 1]?.date || 0)
           return dateB.getTime() - dateA.getTime()
         })
         
@@ -318,65 +318,23 @@ export default function DashboardPage() {
   // Calculate percentage change
   const percentageChange = calculatePercentageChange(totalDue, lastMonthPayments);
 
-  // Calculate due date based on billing date
+  // Update the getDueDate function to set all due dates to March 31, 2025
   const getDueDate = (billingDate: string) => {
-    if (!billingDate) return new Date()
-    
-    try {
-      // Parse the billing date (format: "DD MMM" like "05 Oct")
-      const parts = billingDate.split(' ')
-      if (parts.length < 2) return new Date() // Handle invalid format
-      
-      const day = parseInt(parts[0])
-      const monthStr = parts[1]
-      
-      // Map month abbreviation to month number (0-11)
-      const monthMap: {[key: string]: number} = {
-        'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
-        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-      }
-      
-      const monthNum = monthMap[monthStr] || new Date().getMonth()
-      
-      const today = new Date()
-      const currentMonth = today.getMonth()
-      const currentYear = today.getFullYear()
-      
-      // Calculate the billing date for current month
-      let billingDateObj = new Date(currentYear, monthNum, day)
-      
-      // If billing date is in the past, use next month's billing date
-      if (billingDateObj < today && monthNum <= currentMonth) {
-        // If we're in December, move to January of next year
-        if (monthNum === 11) {
-          billingDateObj = new Date(currentYear + 1, 0, day)
-        } else {
-          billingDateObj = new Date(currentYear, monthNum + 1, day)
-        }
-      }
-      
-      // Due date is billing date + 20 days (payment grace period)
-      const dueDate = new Date(billingDateObj)
-      dueDate.setDate(billingDateObj.getDate() + 20)
-      
-      return dueDate
-    } catch (error) {
-      console.error("Error parsing billing date:", error)
-      return new Date() // Return today's date as fallback
-    }
+    // For now, return March 31, 2025 for all cards
+    return new Date(2025, 2, 31); // Month is 0-indexed, so 2 = March
   }
   
-  // Calculate days remaining until due date
-  const getDaysRemaining = (billingDate: string) => {
-    const dueDate = getDueDate(billingDate)
-    const today = new Date()
-    return Math.max(0, differenceInDays(dueDate, today))
-  }
-  
-  // Format due date for display
+  // Update the formatDueDate function to format this fixed date
   const formatDueDate = (billingDate: string) => {
-    const dueDate = getDueDate(billingDate)
-    return format(dueDate, 'dd MMM yyyy')
+    const dueDate = getDueDate(billingDate);
+    return format(dueDate, 'dd MMM yyyy');
+  }
+  
+  // Update the getDaysRemaining function to calculate days until March 31
+  const getDaysRemaining = (billingDate: string) => {
+    const dueDate = getDueDate(billingDate);
+    const today = new Date();
+    return Math.max(0, differenceInDays(dueDate, today));
   }
   
   // Handle marking a card as paid
@@ -494,6 +452,34 @@ export default function DashboardPage() {
                                       <AlertCircle className="w-4 h-4 ml-1 text-red-500" />
                                     )}
                                   </div>
+                                </div>
+                              </div>
+                              
+                              {/* Credit Utilization Progress Bar */}
+                              <div className="mt-3">
+                                <div className="flex justify-between items-center mb-1">
+                                  <p className="text-xs text-gray-400">Credit Utilization</p>
+                                  <p className={`text-xs font-medium ${
+                                    (card.outstandingAmount / card.cardLimit) * 100 > 80 
+                                      ? 'text-red-400' 
+                                      : (card.outstandingAmount / card.cardLimit) * 100 > 50 
+                                        ? 'text-yellow-400' 
+                                        : 'text-green-400'
+                                  }`}>
+                                    {Math.round((card.outstandingAmount / card.cardLimit) * 100)}%
+                                  </p>
+                                </div>
+                                <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                                  <div 
+                                    className={`h-full ${
+                                      (card.outstandingAmount / card.cardLimit) * 100 > 80 
+                                        ? 'bg-red-500' 
+                                        : (card.outstandingAmount / card.cardLimit) * 100 > 50 
+                                          ? 'bg-yellow-500' 
+                                          : 'bg-green-500'
+                                    }`}
+                                    style={{ width: `${Math.min(100, Math.round((card.outstandingAmount / card.cardLimit) * 100))}%` }}
+                                  ></div>
                                 </div>
                               </div>
                               
