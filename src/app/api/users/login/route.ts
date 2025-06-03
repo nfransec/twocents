@@ -55,6 +55,9 @@ export async function POST(request: NextRequest) {
             })
         }
 
+        // Update lastLogin after successful login
+        await User.findByIdAndUpdate(user._id, { lastLogin: new Date() });
+
         return response;
         
     } catch (error: any) {

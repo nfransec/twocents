@@ -18,6 +18,7 @@ export interface UserType {
   username: string
   profilePicture: string
   dateOfBirth?: string
+  isAdmin: boolean
 }
 
 export default function ProfilePage() {
@@ -31,7 +32,8 @@ export default function ProfilePage() {
     phoneNumber: '',
     username: '',
     profilePicture: 'https://github.com/shadcn.png',
-    dateOfBirth: ''
+    dateOfBirth: '',
+    isAdmin: false
   });
   const appVersion = 'v1.15.0325';
   const [activePage, setActivePage] = useState<string | null>(null);
@@ -473,17 +475,20 @@ export default function ProfilePage() {
                 />
               </div>
               
-              {/* <div className="mb-4">
-                <p className="text-gray-400 mb-1">Date of Birth</p>
-                <input
-                  type="date"
-                  name="dateOfBirth"
-                  value={editedUser.dateOfBirth ? new Date(editedUser.dateOfBirth).toISOString().split('T')[0] : ''}
-                  onChange={handleInputChange}
-                  className="p-4 w-full bg-[#252536] rounded-lg border border-gray-700 text-white"
-                  placeholder="Enter your date of birth"
-                />
-              </div> */}
+              <div className="mb-4">
+                <p className="text-gray-400 mb-1">Admin Status</p>
+                <div className={`p-2 rounded-lg font-semibold ${user.isAdmin ? 'bg-green-700 text-green-200' : 'bg-gray-700 text-gray-300'}`}>
+                  {user.isAdmin ? 'Admin' : 'User'}
+                </div>
+                {user.isAdmin && (
+                  <a
+                    href="/admin"
+                    className="mt-3 inline-block px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-lg font-semibold transition"
+                  >
+                    Go to Admin Panel
+                  </a>
+                )}
+              </div>
 
               {isEditing && (
                 <Button

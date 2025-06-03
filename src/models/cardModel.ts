@@ -29,6 +29,8 @@ interface ICard extends Document {
   };
   imageUrl?: string;
   addPayment(amount: number, note?: string): Promise<ICard>;
+  rewardPoints: number;
+  rewardValue: number;
 }
 
 const paymentHistorySchema = new mongoose.Schema({
@@ -95,6 +97,14 @@ const cardSchema = new mongoose.Schema({
   cardNumber: { type: String },
   cvv: { type: String },
   lastPaymentAmount: Number,
+  rewardPoints: {
+    type: Number,
+    default: 0
+  },
+  rewardValue: {
+    type: Number,
+    default: 0
+  }
 }, { timestamps: true });
 
 // Define the method on the schema

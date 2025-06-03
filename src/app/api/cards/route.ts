@@ -4,6 +4,7 @@ import Card from "@/models/cardModel";
 import jwt from "jsonwebtoken";
 import { z } from 'zod';
 import { cardToBankMapping, CardName } from '@/utils/cardMappings';
+import { calculateRewardValue } from '@/utils/rewardPoints';
 
 const cardSchema = z.object({
   cardName: z.enum(Object.keys(cardToBankMapping) as [CardName, ...CardName[]]),
@@ -16,6 +17,8 @@ const cardSchema = z.object({
   isPaid: z.boolean().optional(),
   paidAmount: z.number().optional(),
   paymentDate: z.string().optional(),
+  rewardPoints: z.number().optional(),
+  rewardValue: z.number().optional(),
 });
 
 const cardUpdateSchema = cardSchema.partial().extend({
@@ -37,40 +40,33 @@ interface CardUpdateData {
   isPaid?: boolean;
   paidAmount?: number;
   paymentDate?: string;
+  rewardPoints?: number;
+  rewardValue?: number;
 }
 
 export async function POST(request: NextRequest) {
   try {
     await connectToDatabase();
+    const reqBody = await request.json();
+    const { cardName, bankName, cardLimit, outstandingAmount, billingDate, rewardPoints } = reqBody;
 
-    const token = request.cookies.get("token")?.value || "";
-    const decodedToken = jwt.verify(
-      token,
-      process.env.NEXT_PUBLIC_TOKEN_SECRET!
-    ) as { id: string };
-    const userId = decodedToken.id;
+    const rewardValue = calculateRewardValue(cardName, rewardPoints || 0);
 
-    const body = await request.json();
-
-    const newCard = await Card.create({
-      ...body,
-      userId,
-      paymentHistory: [],
-      isPaid: false,
-      currentPaidAmount: 0
+    const newCard = new Card({
+      cardName,
+      bankName,
+      cardLimit,
+      outstandingAmount,
+      billingDate,
+      rewardPoints: rewardPoints || 0,
+      rewardValue,
+      userId: reqBody.userId
     });
 
-    return NextResponse.json({
-      message: "Card added successfully",
-      success: true,
-      data: newCard,
-    });
-  } catch (error: any) {
-    console.error("Error adding card:", error.message);
-    return NextResponse.json(
-      { error: "Error adding card", details: error.message },
-      { status: 500 }
-    );
+    const savedCard = await newCard.save();
+    return NextResponse.json(savedCard);
+  } catch (error) {
+    return NextResponse.json({ error: "Error creating card" }, { status: 500 });
   }
 }
 
@@ -98,55 +94,28 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     await connectToDatabase();
+    const reqBody = await request.json();
+    const { cardId, cardName, bankName, cardLimit, outstandingAmount, billingDate, rewardPoints } = reqBody;
 
-    const token = request.cookies.get("token")?.value || "";
-    const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as { id: string };
-    const userId = decodedToken.id;
+    const rewardValue = calculateRewardValue(cardName, rewardPoints || 0);
 
-    const body = await request.json();
-    console.log('Received body:', JSON.stringify(body));
+    const updatedCard = await Card.findByIdAndUpdate(
+      cardId,
+      {
+        cardName,
+        bankName,
+        cardLimit,
+        outstandingAmount,
+        billingDate,
+        rewardPoints: rewardPoints || 0,
+        rewardValue
+      },
+      { new: true }
+    );
 
-    try {
-      const validatedData = cardUpdateSchema.parse(body);
-      console.log('Validated data:', validatedData);
-
-      const { _id, isPaid, paidAmount, outstandingAmount, ...otherUpdates  } = validatedData;
-
-      const updateData: CardUpdateData = { ...otherUpdates };
-
-      if (isPaid !== undefined) {
-        updateData.isPaid = isPaid;
-        updateData.paidAmount = paidAmount ?? 0;
-        updateData.outstandingAmount = 0;
-        updateData.paymentDate = new Date().toLocaleString();
-      }
-
-      const updatedCard = await Card.findOneAndUpdate(
-        { _id, userId },
-        updateData,
-        { new: true }
-      );
-
-      if (!updatedCard) {
-        return NextResponse.json({ error: "Card not found or you don't have permission to update it" }, { status: 404 });
-      }
-
-      return NextResponse.json({
-        message: "Card updated successfully",
-        success: true,
-        data: updatedCard,
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        console.error('Zod validation error:', error);
-        const errorMessage = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`).join(', ');
-        return NextResponse.json({ error: errorMessage }, { status: 400 });
-      }
-      throw error;
-    }
+    return NextResponse.json(updatedCard);
   } catch (error) {
-    console.error('Error in PUT /api/cards:', error);
-    return NextResponse.json({ error: "An error occurred while updating the card" }, { status: 500 });
+    return NextResponse.json({ error: "Error updating card" }, { status: 500 });
   }
 }
 

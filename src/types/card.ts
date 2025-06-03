@@ -5,20 +5,26 @@ export interface CardType {
   cardLimit: number;
   billingDate: string;
   outstandingAmount: number;
-  cardNumber?: string;
-  cvv?: string;
-  paymentDate?: string;
-  paidAmount?: number;
   isPaid: boolean;
-  paymentHistory?: {
+  currentPaidAmount: number;
+  lastPaymentDate?: string;
+  paymentHistory: {
     amount: number;
     date: string;
     billingMonth: string;
     outstandingAfterPayment: number;
   }[];
+  paymentSchedule: {
+    isAutoPayEnabled: boolean;
+    reminderDays: number;
+    reminderMethod: string;
+  };
+  imageUrl?: string;
+  cardNumber?: string;
+  cvv?: string;
   lastPaymentAmount?: number;
-  lastPaymentDate?: string;
-  userId?: string;
+  rewardPoints: number;
+  rewardValue: number;
 }
 
 export interface PaymentHistoryType {

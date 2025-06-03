@@ -59,7 +59,16 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
     cardLimit: 0,
     billingDate: '',
     outstandingAmount: 0,
-    isPaid: false
+    isPaid: false,
+    currentPaidAmount: 0,
+    paymentHistory: [],
+    paymentSchedule: {
+      isAutoPayEnabled: false,
+      reminderDays: 5,
+      reminderMethod: 'BOTH'
+    },
+    rewardPoints: 0,
+    rewardValue: 0
   });
   
   const [availableCards, setAvailableCards] = useState<CardName[]>([]);
@@ -211,7 +220,16 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
       cardLimit: 0,
       billingDate: '',
       outstandingAmount: 0,
-      isPaid: false
+      isPaid: false,
+      currentPaidAmount: 0,
+      paymentHistory: [],
+      paymentSchedule: {
+        isAutoPayEnabled: false,
+        reminderDays: 5,
+        reminderMethod: 'BOTH'
+      },
+      rewardPoints: 0,
+      rewardValue: 0
     });
     setErrors({});
   };
@@ -363,6 +381,19 @@ export function AddCardModal({ isOpen, onClose, onAddCard }: AddCardModalProps) 
                           className="bg-[#252536] border-gray-700 text-white h-12 rounded-xl"
                         />
                       </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-lg font-medium text-white">Reward Points</p>
+                      <Input
+                        id="rewardPoints"
+                        name="rewardPoints"
+                        type="number"
+                        placeholder="Enter points"
+                        value={newCard.rewardPoints !== 0 ? newCard.rewardPoints : ''}
+                        onChange={handleInputChange}
+                        className="bg-[#252536] border-gray-700 text-white h-12 rounded-xl"
+                      />
                     </div>
                   </form>
                 </div>

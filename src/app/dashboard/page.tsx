@@ -429,6 +429,36 @@ export default function DashboardPage() {
               <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-4">Upcoming Payments</h2>
                 
+                {/* Overall Amount Due Card */}
+                <Card className="bg-gradient-to-r from-purple-700 to-indigo-600 mb-6 border-none">
+                  <CardContent className="p-5">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="text-sm font-medium text-purple-200">Total Due This Month</h3>
+                        <p className="text-2xl font-bold text-white mt-1">
+                          ₹{upcomingPayments.reduce((total, card) => total + card.outstandingAmount, 0).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="bg-white/20 p-3 rounded-full">
+                        <CreditCard className="h-6 w-6 text-white" />
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4">
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="text-xs text-purple-200">Cards with pending payments</p>
+                        <p className="text-xs font-medium text-white">{upcomingPayments.length} cards</p>
+                      </div>
+                      <div className="w-full bg-white/20 rounded-full h-1.5 overflow-hidden">
+                        <div 
+                          className="h-full bg-white"
+                          style={{ width: `${(upcomingPayments.length / Math.max(1, cards.length)) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
                 <div className="space-y-4">
                   {upcomingPayments.length > 0 ? (
                     upcomingPayments.map((card) => (
@@ -604,73 +634,6 @@ export default function DashboardPage() {
           </Tabs>
         </div>
       </main>
-      
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#1c1c28] border-t border-gray-800 py-3 px-6 flex justify-between items-center">
-        <div className="flex flex-col items-center">
-          <div className="p-1">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-emerald-500"
-            >
-              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-          </div>
-          <span className="text-xs text-emerald-500 font-medium">Home</span>
-        </div>
-
-        <div className="flex flex-col items-center">
-          <div className="p-1">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-gray-400"
-            >
-              <path d="M3 3v18h18"></path>
-              <path d="M18 17V9"></path>
-              <path d="M13 17V5"></path>
-              <path d="M8 17v-3"></path>
-            </svg>
-          </div>
-          <span className="text-xs text-gray-400">Statistics</span>
-        </div>
-
-        <div className="flex flex-col items-center">
-          <div className="p-1">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-gray-400"
-            >
-              <rect width="20" height="14" x="2" y="5" rx="2"></rect>
-              <line x1="2" x2="22" y1="10" y2="10"></line>
-            </svg>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

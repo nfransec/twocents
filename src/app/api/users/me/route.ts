@@ -16,12 +16,26 @@ export async function GET(request: NextRequest) {
         await connectToDatabase();
 
         const token = request.cookies.get("token")?.value || "";
-        const decodedToken = jwt.verify(token, process.env.NEXT_PUBLIC_TOKEN_SECRET!) as JwtPayload;
-        const userId = decodedToken.id;
+        
+        if (!token) {
+            return NextResponse.json(
+                { error: "Not authenticated" },
+                { status: 401 }
+            );
+        }
 
-        const user = await User.findById(userId).select("-password");
-        if(!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        const decodedToken = jwt.verify(
+            token,
+            process.env.NEXT_PUBLIC_TOKEN_SECRET!
+        ) as { id: string };
+        
+        const user = await User.findById(decodedToken.id).select("-password");
+        
+        if (!user) {
+            return NextResponse.json(
+                { error: "User not found" },
+                { status: 404 }
+            );
         }
 
         console.log("User data being sent:", {
@@ -47,7 +61,10 @@ export async function GET(request: NextRequest) {
         });
         
     } catch (error) {
-        console.error(error);
-        return NextResponse.json({ error: "An error occurred while fetching user data"}, { status: 500});
+        console.error("Error fetching user:", error);
+        return NextResponse.json(
+            { error: "Failed to fetch user" },
+            { status: 500 }
+        );
     }
 }

@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface EditCardModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onEdit: (editedCard: CardType) => void;
+  onEdit: (updatedCard: CardType) => void;
   card: CardType;
 }
 
@@ -78,7 +78,7 @@ export function EditCardModal({ isOpen, onClose, onEdit, card }: EditCardModalPr
     const { name, value } = e.target;
     setEditedCard(prev => ({
       ...prev,
-      [name]: name === 'cardLimit' || name === 'outstandingAmount' ? Number(value) : value
+      [name]: name === 'cardLimit' || name === 'outstandingAmount' || name === 'rewardPoints' ? Number(value) : value
     }));
     
     // Clear error for this field when user types
@@ -146,7 +146,7 @@ export function EditCardModal({ isOpen, onClose, onEdit, card }: EditCardModalPr
     
     if (!validateForm()) {
       setFeedbackState('error');
-      setFeedbackMessage('Please fill all required fields');
+      setFeedbackMessage('Please select bank and card type');
       
       // Auto-dismiss error after 2 seconds
       setTimeout(() => {
@@ -222,12 +222,12 @@ export function EditCardModal({ isOpen, onClose, onEdit, card }: EditCardModalPr
             ) : (
               <>
                 <div className="px-6 pt-8 pb-4 overflow-y-auto flex-grow">
-                  <h1 className="text-2xl font-bold text-white mb-6">Edit card</h1>
+                  <h1 className="text-2xl font-bold text-white mb-6">Edit Card</h1>
                   
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <p className="text-lg font-medium text-white">Bank name <span className="text-red-500">*</span></p>
+                        <p className="text-lg font-medium text-white">Select your bank<span className="text-red-500">*</span></p>
                         {errors.bankName && (
                           <p className="text-red-500 text-sm flex items-center">
                             <AlertCircle className="w-3 h-3 mr-1" />
@@ -257,7 +257,7 @@ export function EditCardModal({ isOpen, onClose, onEdit, card }: EditCardModalPr
                     
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <p className="text-lg font-medium text-white">Card type <span className="text-red-500">*</span></p>
+                        <p className="text-lg font-medium text-white">Your card type<span className="text-red-500">*</span></p>
                         {errors.cardName && (
                           <p className="text-red-500 text-sm flex items-center">
                             <AlertCircle className="w-3 h-3 mr-1" />
@@ -342,6 +342,19 @@ export function EditCardModal({ isOpen, onClose, onEdit, card }: EditCardModalPr
                         />
                       </div>
                     </div>
+
+                    <div className="space-y-2">
+                      <p className="text-lg font-medium text-white">Reward Points</p>
+                      <Input
+                        id="rewardPoints"
+                        name="rewardPoints"
+                        type="number"
+                        placeholder="Enter points"
+                        value={editedCard.rewardPoints !== 0 ? editedCard.rewardPoints : ''}
+                        onChange={handleInputChange}
+                        className="bg-[#252536] border-gray-700 text-white h-12 rounded-xl"
+                      />
+                    </div>
                   </form>
                 </div>
                 
@@ -350,9 +363,9 @@ export function EditCardModal({ isOpen, onClose, onEdit, card }: EditCardModalPr
                   <Button
                     type="button"
                     onClick={handleSubmit}
-                    className="w-full bg-purple-700 hover:bg-purple-800 text-white h-12 rounded-xl text-lg font-medium"
+                    className="w-full bg-purple-700 hover:bg-purple-800 text-white h-12 rounded-xl text-xl font-medium"
                   >
-                    Save Changes
+                    Update
                   </Button>
                 </div>
               </>

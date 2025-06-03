@@ -92,8 +92,19 @@ const CardDisplay = ({
 
   
         <div className="mt-auto">
-          {/* <p className="text-md text-white">Due:</p> */}
-          <p className="text-white">₹{card.outstandingAmount.toLocaleString()}</p>
+          <div className="flex flex-col gap-2">
+            <div>
+              <p className="text-xs text-white opacity-80">Outstanding</p>
+              <p className="text-white text-lg font-semibold">₹{card.outstandingAmount.toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-xs text-white opacity-80">Reward Points</p>
+              <div className="flex items-baseline gap-1">
+                <p className="text-white text-lg font-semibold">{card.rewardPoints?.toLocaleString() || 0}</p>
+                <p className="text-white text-xs opacity-70">(₹{card.rewardValue?.toLocaleString() || 0})</p>
+              </div>
+            </div>
+          </div>
         </div>
         
         {/* Card number */}
@@ -496,6 +507,23 @@ export default function CardsPage() {
                             <span className="text-purple-400">Outstanding Amount</span>
                             <span className="font-medium">₹{cards[activeCardIndex].outstandingAmount.toLocaleString()}</span>
                           </div>
+
+                          <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                            <span className="text-purple-400">Reward Points</span>
+                            <span className="font-medium">{cards[activeCardIndex].rewardPoints?.toLocaleString() || 0}</span>
+                          </div>
+
+                          <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                            <span className="text-purple-400">Reward Value</span>
+                            <span className="font-medium">₹{cards[activeCardIndex].rewardValue?.toLocaleString() || 0}</span>
+                          </div>
+
+                          <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                            <span className="text-purple-400">Payment Status</span>
+                            <span className={`font-medium ${cards[activeCardIndex].isPaid ? 'text-green-500' : 'text-red-500'}`}>
+                              {cards[activeCardIndex].isPaid ? 'Paid' : 'Unpaid'}
+                            </span>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -580,6 +608,16 @@ export default function CardsPage() {
                             </div>
                             
                             <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                              <span className="text-purple-400">Reward Points</span>
+                              <span className="font-medium">{cards[activeCardIndex].rewardPoints?.toLocaleString() || 0}</span>
+                            </div>
+                            
+                            <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                              <span className="text-purple-400">Reward Value</span>
+                              <span className="font-medium">₹{cards[activeCardIndex].rewardValue?.toLocaleString() || 0}</span>
+                            </div>
+                            
+                            <div className="flex justify-between items-center py-2 border-b border-gray-700">
                               <span className="text-purple-400">Payment Status</span>
                               <span className={`font-medium ${cards[activeCardIndex].isPaid ? 'text-green-500' : 'text-red-500'}`}>
                                 {cards[activeCardIndex].isPaid ? 'Paid' : 'Unpaid'}
@@ -635,103 +673,6 @@ export default function CardsPage() {
               card={cardToDelete}
             />
           )}
-          <div className="fixed bottom-0 left-0 right-0 bg-[#1c1c28] border-t border-gray-800 py-3 px-6 flex justify-between items-center">
-            {/* Home icon */}
-            <div className="flex flex-col items-center">
-              <div className="p-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-gray-400"
-                >
-                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                  <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
-              </div>
-              <span className="text-xs text-gray-400">Home</span>
-            </div>
-
-            {/* Dashboard icon - Update this to make it clickable */}
-            <div 
-              className="flex flex-col items-center cursor-pointer" 
-              onClick={() => router.push('/dashboard')}
-            >
-              <div className="p-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-gray-400"
-                >
-                  <path d="M3 3v18h18"></path>
-                  <path d="M18 17V9"></path>
-                  <path d="M13 17V5"></path>
-                  <path d="M8 17v-3"></path>
-                </svg>
-              </div>
-              <span className="text-xs text-gray-400">Dashboard</span>
-            </div>
-
-            {/* Cards icon */}
-            <div className="flex flex-col items-center">
-              <div className="p-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-emerald-500"
-                >
-                  <rect width="20" height="14" x="2" y="5" rx="2"></rect>
-                  <line x1="2" x2="22" y1="10" y2="10"></line>
-                </svg>
-              </div>
-              <span className="text-xs text-emerald-500 font-medium">Cards</span>
-            </div>
-
-            {/* Account icon */}
-            <div 
-              className="flex flex-col items-center cursor-pointer"
-              onClick={() => router.push('/profile')}
-            >
-              <div className="p-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-gray-400"
-                >
-                  <circle cx="12" cy="8" r="5"></circle>
-                  <path d="M20 21a8 8 0 0 0-16 0"></path>
-                </svg>
-              </div>
-              <span className="text-xs text-gray-400">Account</span>
-            </div>
-          </div>
         </>
       )}
     </div>
